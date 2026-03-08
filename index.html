@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Break the Window</title>
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      html::-webkit-scrollbar,
+      body::-webkit-scrollbar {
+        display: none;
+      }
+
+      html,
+      body {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+    </style>
+  </head>
+
+  <body class="m-0 bg-white overflow-y-scroll">
+    <div>
+      <h1
+        class="fixed left-1/2 -translate-x-1/2 -translate-y-1/2 text-black font-sans font-bold z-[2] tracking-tight leading-tight /* Mobile Styles */ top-[20%] text-4xl w-[96%] /* Desktop Styles (768px and up) */ md:top-[15%] md:text-5xl md:w-[70%] md:tracking-tighter md:leading-tight"
+        id="title"
+        style="text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1)"
+      >
+        <span class="text-6xl md:text-6xl">Break the Window:</span>
+        <br />
+        Exploring Spatial Decomposition of Webpages in XR
+      </h1>
+
+      <div
+        class="z-[2] fixed left-1/2 -translate-x-1/2 -translate-y-1/2 /* Mobile Styles */ top-[53%] text-4xl w-[96%] /* Desktop Styles (768px and up) */ md:top-[55%] md:text-5xl md:w-[40%]"
+        id="infoBlock"
+      >
+        <!-- Author Names -->
+        <div
+          class="relative text-sm sm:text-2xl mb-8 text-center flex flex-wrap justify-center gap-x-6 gap-y-2"
+        >
+          <a
+            href="https://www.chenyang.me/"
+            class="text-blue-900 hover:text-blue-600"
+            >Chenyang Zhang</a
+          >
+          <a href="" class="text-blue-900 hover:text-blue-600"
+            >Tianjian Wei</a
+          >
+          <a
+            href="https://alexanderyang.me/"
+            class="text-blue-900 hover:text-blue-600"
+            >Haoyang Yang</a
+          >
+          <a
+            href="https://margonzalezfranco.github.io/"
+            class="text-blue-900 hover:text-blue-600"
+            >Mar Gonzalez-Franco</a
+          >
+          <a
+            href="https://ivi.cc.gatech.edu/pi.html"
+            class="text-blue-900 hover:text-blue-600"
+            >Yalong Yang</a
+          >
+          <a
+            href="https://www.ejgonzalez.me/"
+            class="text-blue-900 hover:text-blue-600"
+            >Eric J Gonzalez</a
+          >
+        </div>
+
+        <!-- External Links -->
+        <div
+          class="relative flex flex-row gap-6 text-center justify-center mb-10"
+        >
+          <a
+            href="https://arxiv.org/abs/2603.02471"
+            class="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-full transition flex items-center justify-center gap-2 text-sm"
+          >
+            <img
+              src="images/arXiv.png"
+              alt="arXiv icon"
+              class="h-4"
+            />
+            <span class="text-sm">arXiv</span>
+          </a>
+          <a
+            href="https://github.com/BTW-XR"
+            class="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-full transition flex items-center justify-center gap-2 text-sm"
+          >
+            <img
+              src="images/GitHub_Invertocat_Black.png"
+              alt="Code icon"
+              class="h-4"
+            />
+            <span class="text-sm">Code</span>
+          </a>
+        </div>
+
+        <div
+          class="z-[2] fixed text-center left-1/2 -translate-x-1/2 top-[250%] md:top-[120%] width-[96%] text-base text-gray-500"
+          id="title"
+        >
+          Keep Scrolling Down
+          <div
+            class="animate-bounce inline-block ml-2 text-xl align-middle"
+          >
+            ↓
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel Content for Stage 3 -->
+    <div
+      id="middlePanelContent"
+      class="fixed top-[46%] -translate-y-1/2 left-1/2 -translate-x-1/2 w-[70%] z-[3] pointer-events-none flex flex-col gap-y-8 \* Desktop Styles (768px and up) \* md:w-[50%] md:left-[25%] md:-translate-x-0"
+      style="opacity: 0"
+    >
+      <div class="flex flex-row">
+        <img
+          src="images/teaser.jpg"
+          alt="Teaser Image"
+          class="hidden md:block mt-10 rounded-lg w-full"
+        />
+
+        <img
+          src="images/teaser-vert.png"
+          alt="Teaser Image Mobile"
+          class="block md:hidden mt-10 rounded-lg w-full"
+        />
+      </div>
+      <p>
+        BTW rethinks XR web experiences by
+        <b>breaking the window</b> and decomposing webpages into
+        <b>spatially distributed UI chunks</b>, shifting from a
+        <b>content → window → space</b> hierarchy to a
+        <b>content → space design</b> that enables direct engagement
+        with web information through spatial organization and embodied
+        interaction.
+      </p>
+    </div>
+
+    <div
+      id="leftPanelContent"
+      class="fixed top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-[75%] z-[3] pointer-events-none \* Desktop Styles (768px and up) \* md:w-[38%] md:left-[34%] md:-translate-x-0"
+      style="opacity: 0"
+    >
+      <div>
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">
+          Abstract
+        </h2>
+        <p class="text-gray-600 mb-3">
+          Most XR web browsers still present webpages as a single
+          floating window, carrying over desktop design assumptions
+          into immersive space. We explore an alternative by breaking
+          the browser window and distributing a webpage into spatial
+          UI chunks within a mixed-reality workspace. We present
+          Break-the-Window (BTW), an exploratory prototype that
+          spatially decomposes live, fully functional webpages into
+          movable panels supporting mid-air and surface-attached
+          placement, as well as direct touch and ray-based
+          interaction. Through a formative study with XR practitioners
+          and an exploratory qualitative study with 15 participants,
+          we observed how spatial decomposition supports distributed
+          attention and spatial meaning-making, while also surfacing
+          challenges around coordination effort, interaction
+          precision, and the lack of shared spatial UI conventions.
+          This work invites discussion on how web interfaces might be
+          reimagined for spatial computing beyond the single-window
+          paradigm.
+        </p>
+      </div>
+    </div>
+
+    <div
+      id="rightPanelContent"
+      class="fixed top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-[75%] z-[3] pointer-events-none \* Desktop Styles (768px and up) \* md:w-[50%] md:left-[25%] md:-translate-x-0"
+      style="opacity: 0"
+    >
+      <div class="flex flex-col gap-y-4 md:flex-row md:gap-x-4">
+        <div class="md:w-1/2">
+          <h2 class="text-2xl font-bold mb-4 text-gray-800">
+            System Overview
+          </h2>
+          <div class="flex flex-col md:items-start items-center">
+            <img
+              src="images/system.png"
+              alt="System Diagram"
+              class="rounded-lg w-[80%] mb-8 md:w-[90%]"
+            />
+          </div>
+          <h2
+            class="hidden md:block text-2xl font-bold mb-4 text-gray-800"
+          >
+            User Study
+          </h2>
+          <img
+            src="images/study-setup.png"
+            alt="System Diagram"
+            class="hidden md:block rounded-lg w-[100%] mb-8 md:w-[90%]"
+          />
+        </div>
+        <div class="md:w-1/2">
+          <h2 class="text-2xl font-bold mb-4 text-gray-800">
+            More pictures
+          </h2>
+          <div class="flex flex-col md:items-start items-center">
+            <img
+              src="images/demo-youtube.png"
+              alt="YouTube"
+              class="rounded-lg w-[80%] mb-4 md:w-[80%]"
+            />
+            <img
+              src="images/demo-slides.png"
+              alt="Slides"
+              class="rounded-lg w-[80%] mb-4 md:w-[80%]"
+            />
+            <img
+              src="images/demo-maps.png"
+              alt="Maps"
+              class="rounded-lg w-[80%] mb-4 md:w-[80%]"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-spacer h-[900vh]"></div>
+
+    <section
+      id="stage5Content"
+      class="relative z-[4] mx-auto w-[92%] max-w-4xl rounded-2xl bg-white/85 px-6 py-8 text-left md:w-[70%]"
+      style="opacity: 0"
+    >
+      <h3 class="mb-6 text-2xl font-bold text-gray-600 md:text-3xl">
+        Acknowledgments
+      </h3>
+
+      <h3 class="mb-6 text-2xl font-bold text-gray-600 md:text-3xl">
+        BibTeX
+      </h3>
+      <pre
+        class="bg-gray-100 p-0 rounded-md overflow-x-auto text-left font-mono text-sm text-gray-800"
+      >
+<code>   @inproceedings{Zhang:2026:BreakTheWindow,
+      author    = {Zhang, Chenyang and Wei, Tianjian and Yang, Haoyang and Gonzalez-Franco, Mar and Yang, Yalong and Gonzalez, Eric J.},
+      title     = {Break the Window: Exploring Spatial Decomposition of Webpages in XR},
+      booktitle = {Extended Abstracts of the 2026 CHI Conference on Human Factors in Computing Systems},
+      year      = {2026}}</code>
+      </pre>
+    </section>
+
+    <div class="h-[20vh] md:h-[5vh]"></div>
+
+    <canvas id="webgl" class="fixed top-0 left-0 z-[1]"></canvas>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="main.js"></script>
+  </body>
+</html>
