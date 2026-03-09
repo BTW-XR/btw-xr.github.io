@@ -65,10 +65,10 @@ const ANIMATION_CONFIG = {
       duration: 3.0,
       zoomAmount: 1.0,
       separation: { x: 1.0, z: 0.3 },
-      scale: { x: 4.0, y: 5.5 },
+      scale: { x: 4.5, y: 5.5 },
       moveDown: 0.5,
     },
-    stage3: { pauseA: 2.0, moveLeft: 0.7, pauseB: 1.0, moveRight: 0.95, pauseC: 1.0 },
+    stage3: { pauseA: 2.0, moveLeft: 0.7, pauseB: 2.0, moveRight: 0.95, pauseC: 2.0 },
     stage4: {
       rotateToCenter: 0.9,
       moveBackZ: 5.5,
