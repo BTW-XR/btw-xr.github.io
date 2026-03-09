@@ -40,7 +40,7 @@ const ANIMATION_CONFIG = {
       scale: { x: 10.0, y: 5.0 },
       moveDown: 0.4,
     },
-    stage3: { pauseA: 1.2, moveLeft: 0.7, pauseB: 1.0, moveRight: 0.95, pauseC: 1.0 },
+    stage3: { pauseA: 2.0, moveLeft: 0.5, pauseB: 2.0, moveRight: 0.5, pauseC: 2.0 },
     stage4: {
       rotateToCenter: 0.9,
       moveBackZ: 2.5,
@@ -53,14 +53,14 @@ const ANIMATION_CONFIG = {
       panelDuration: 0.9,
     },
     stage5: {
-      pauseAfterStage4: 0.4,
-      duration: 1.0,
+      pauseAfterStage4: 0.1,
+      duration: 0.5,
       threeDim: 0.92,
       contentFade: 0.8,
     },
   },
   MOBILE: {
-    stage1: { duration: 1.0, zoomAmount: 0.4 },
+    stage1: { duration: 3.0, zoomAmount: 0.4 },
     stage2: {
       duration: 3.0,
       zoomAmount: 1.0,
@@ -68,7 +68,7 @@ const ANIMATION_CONFIG = {
       scale: { x: 4.5, y: 5.5 },
       moveDown: 0.5,
     },
-    stage3: { pauseA: 2.0, moveLeft: 0.7, pauseB: 2.0, moveRight: 0.95, pauseC: 2.0 },
+    stage3: { pauseA: 1.0, moveLeft: 0.5, pauseB: 1.0, moveRight: 0.5, pauseC: 0.3 },
     stage4: {
       rotateToCenter: 0.9,
       moveBackZ: 5.5,
@@ -110,6 +110,35 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.domElement.style.filter = 'brightness(1)';
+
+/**
+ * Returns viewport dimensions that track mobile browser UI chrome changes.
+ * visualViewport reflects the currently visible area when the URL bar collapses.
+ * @returns {{width: number, height: number}}
+ */
+function getViewportSize() {
+  if (window.visualViewport) {
+    return {
+      width: window.visualViewport.width,
+      height: window.visualViewport.height,
+    };
+  }
+
+  return {
+    width: window.innerWidth,
+    height: window.innerHeight,
+  };
+}
+
+/**
+ * Updates CSS viewport unit fallback used by panel max-heights.
+ */
+function updateDynamicViewportHeight() {
+  const { height } = getViewportSize();
+  document.documentElement.style.setProperty('--app-vh', `${height / 100}px`);
+}
+
+updateDynamicViewportHeight();
 
 // ============================================================================
 // CAMERA CONTROL STATE
@@ -177,6 +206,24 @@ function initScrollRestoration() {
 }
 
 initScrollRestoration();
+
+/**
+ * Updates the fixed top progress bar based on current document scroll.
+ */
+function updateScrollProgressBar() {
+  const progressBar = document.querySelector('#pageProgressBar');
+  if (!progressBar) return;
+
+  const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = scrollableHeight > 0 ? window.scrollY / scrollableHeight : 0;
+  const clampedProgress = Math.min(Math.max(progress, 0), 1);
+
+  progressBar.style.width = `${(clampedProgress * 100).toFixed(2)}%`;
+}
+
+window.addEventListener('scroll', updateScrollProgressBar, { passive: true });
+window.addEventListener('load', updateScrollProgressBar);
+window.addEventListener('DOMContentLoaded', updateScrollProgressBar);
 
 /**
  * Enables/disables links in the info block based on opacity.
@@ -447,9 +494,11 @@ function initScrollAnimations(sceneObjects) {
       duration: stage1Duration,
       onUpdate: () => {
         const title = document.querySelector('#title');
+        const scrollHint = document.querySelector('#scrollHint');
         const infoBlock = document.querySelector('#infoBlock');
 
         if (title) title.style.opacity = overlayOpacity.value;
+        if (scrollHint) scrollHint.style.opacity = overlayOpacity.value;
         if (infoBlock) infoBlock.style.opacity = overlayOpacity.value;
 
         updateInfoLinksInteractivity(overlayOpacity.value);
@@ -821,8 +870,25 @@ function updatePanelsFacingCamera() {
  * Handle window resize event
  */
 window.addEventListener('resize', () => {
+  updateDynamicViewportHeight();
+  updateScrollProgressBar();
+
+  const viewport = getViewportSize();
   setCameraPosition();
-  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.aspect = viewport.width / viewport.height;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(viewport.width, viewport.height);
 });
+
+if (window.visualViewport) {
+  // Mobile Chrome triggers these as the address bar shows/hides.
+  window.visualViewport.addEventListener('resize', () => {
+    updateDynamicViewportHeight();
+    updateScrollProgressBar();
+
+    const viewport = getViewportSize();
+    camera.aspect = viewport.width / viewport.height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(viewport.width, viewport.height);
+  });
+}

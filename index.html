@@ -10,6 +10,10 @@
     <link rel="icon" type="image/png" href="favicon.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+      :root {
+        --app-vh: 1vh;
+      }
+
       html::-webkit-scrollbar,
       body::-webkit-scrollbar {
         display: none;
@@ -19,16 +23,30 @@
       body {
         scrollbar-width: none;
         -ms-overflow-style: none;
+        scroll-behavior: auto !important;
+        overscroll-behavior: none;
       }
     </style>
   </head>
 
-  <body class="m-0 bg-white overflow-y-scroll">
+  <body
+    class="m-0 bg-white overflow-y-scroll"
+  >
+    <div
+      id="pageProgressTrack"
+      class="fixed top-0 left-0 z-[9999] h-1 w-full bg-black/10 pointer-events-none"
+      aria-hidden="true"
+    >
+      <div
+        id="pageProgressBar"
+        class="h-full w-0 bg-black"
+      ></div>
+    </div>
+
     <div>
       <h1
-        class="fixed left-1/2 -translate-x-1/2 -translate-y-1/2 text-black font-sans font-bold z-[2] tracking-tight leading-tight /* Mobile Styles */ top-[20%] text-3xl w-[96%] /* Desktop Styles (768px and up) */ md:top-[15%] md:text-5xl md:w-[70%] md:tracking-tighter md:leading-tight"
+        class="fixed left-1/2 -translate-x-1/2 -translate-y-1/2 text-black font-sans font-bold z-[2] tracking-tight leading-tight top-[20%] text-3xl w-[96%] md:top-[15%] md:text-5xl md:w-[70%] md:tracking-tighter md:leading-tight"
         id="title"
-        style="text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1)"
       >
         <span class="text-5xl md:text-6xl">Break the Window:</span>
         <br />
@@ -36,19 +54,19 @@
       </h1>
 
       <div
-        class="z-[2] fixed left-1/2 -translate-x-1/2 -translate-y-1/2 /* Mobile Styles */ top-[53%] text-3xl w-[96%] /* Desktop Styles (768px and up) */ md:top-[55%] md:text-5xl md:w-[40%]"
+        class="z-[2] fixed -translate-y-1/2 top-[53%] text-3xl left-[10%] w-[80%] md:top-[55%] md:text-5xl md:left-[25%] md:w-[50%] flex flex-col items-center"
         id="infoBlock"
       >
         <!-- Author Names -->
         <div
-          class="relative w-[90%] text-xs sm:text-2xl mb-8 text-center flex flex-wrap justify-center gap-x-6 gap-y-2"
+          class="relative text-sm md:text-xl mb-8 text-center flex flex-wrap justify-center gap-x-6 md:gap-x-12 gap-y-2"
         >
           <a
             href="https://www.chenyang.me/"
             class="text-blue-900 hover:text-blue-600"
             >Chenyang Zhang</a
           >
-          <a href="" class="text-blue-900 hover:text-blue-600"
+          <a href="#" class="text-blue-900 hover:text-blue-600"
             >Tianjian Wei</a
           >
           <a
@@ -100,25 +118,25 @@
             <span class="text-xs">Code</span>
           </a>
         </div>
+      </div>
+    </div>
 
-        <div
-          class="z-[2] fixed text-center left-1/2 -translate-x-1/2 top-[250%] md:top-[120%] width-[96%] text-sm text-gray-500"
-          id="title"
-        >
-          Keep Scrolling Down
-          <div
-            class="animate-bounce inline-block ml-2 text-lg align-middle"
-          >
-            ↓
-          </div>
-        </div>
+    <div
+      id="scrollHint"
+      class="fixed z-[2] text-center left-1/2 -translate-x-1/2 top-[90%] md:top-[80%] w-[96%] text-sm text-gray-500"
+    >
+      Keep Scrolling Down
+      <div
+        class="animate-bounce inline-block ml-2 text-lg align-middle"
+      >
+        ↓
       </div>
     </div>
 
     <!-- Panel Content for Stage 3 -->
     <div
       id="middlePanelContent"
-      class="fixed top-[10%] translate-y-0 left-1/2 -translate-x-1/2 w-[70%] max-h-[80vh] overflow-y-auto z-[3] pointer-events-none flex flex-col gap-y-8 \* Desktop Styles (768px and up) \* md:top-[46%] md:-translate-y-1/2 md:max-h-none md:overflow-visible md:w-[50%] md:left-[25%] md:-translate-x-0"
+      class="fixed top-[10%] translate-y-0 left-1/2 -translate-x-1/2 w-[70%] max-h-[calc(var(--app-vh)*80)] overflow-y-auto z-[3] pointer-events-none flex flex-col gap-y-8 md:top-[46%] md:-translate-y-1/2 md:max-h-none md:overflow-visible md:w-[50%] md:left-[25%] md:-translate-x-0"
       style="opacity: 0"
     >
       <div class="flex flex-row">
@@ -147,7 +165,7 @@
 
     <div
       id="leftPanelContent"
-      class="fixed top-[10%] translate-y-0 left-1/2 -translate-x-1/2 w-[75%] max-h-[80vh] overflow-y-auto z-[3] pointer-events-none \* Desktop Styles (768px and up) \* md:top-1/2 md:-translate-y-1/2 md:max-h-none md:overflow-visible md:w-[38%] md:left-[34%] md:-translate-x-0"
+      class="fixed top-[10%] translate-y-0 left-1/2 -translate-x-1/2 w-[75%] max-h-[calc(var(--app-vh)*80)] overflow-y-auto z-[3] pointer-events-none md:top-1/2 md:-translate-y-1/2 md:max-h-none md:overflow-visible md:w-[38%] md:left-[30%] md:-translate-x-0"
       style="opacity: 0"
     >
       <div>
@@ -177,7 +195,7 @@
 
     <div
       id="rightPanelContent"
-      class="fixed top-[10%] translate-y-0 left-1/2 -translate-x-1/2 w-[75%] max-h-[80vh] overflow-y-auto z-[3] pointer-events-none \* Desktop Styles (768px and up) \* md:top-1/2 md:-translate-y-1/2 md:max-h-none md:overflow-visible md:w-[50%] md:left-[25%] md:-translate-x-0"
+      class="fixed top-[10%] translate-y-0 left-1/2 -translate-x-1/2 w-[75%] max-h-[calc(var(--app-vh)*80)] overflow-y-auto z-[3] pointer-events-none md:top-1/2 md:-translate-y-1/2 md:max-h-none md:overflow-visible md:w-[50%] md:left-[27%] md:-translate-x-0"
       style="opacity: 0"
     >
       <div class="flex flex-col gap-y-4 md:flex-row md:gap-x-4">
@@ -228,7 +246,7 @@
       </div>
     </div>
 
-    <div class="scroll-spacer h-[900vh]"></div>
+    <div class="scroll-spacer h-[850vh]"></div>
 
     <section
       id="stage5Content"
