@@ -32,7 +32,7 @@ const CONFIG = {
 
 const ANIMATION_CONFIG = {
   DESKTOP: {
-    stage1: { duration: 1.0, zoomAmount: 0.3 },
+    stage1: { duration: 3.0, zoomAmount: 0.3 },
     stage2: {
       duration: 3.0,
       zoomAmount: 1.1,
@@ -60,9 +60,9 @@ const ANIMATION_CONFIG = {
     },
   },
   MOBILE: {
-    stage1: { duration: 3.0, zoomAmount: 0.4 },
+    stage1: { duration: 1.5, zoomAmount: 0.4 },
     stage2: {
-      duration: 3.0,
+      duration: 2.0,
       zoomAmount: 1.0,
       separation: { x: 1.0, z: 0.3 },
       scale: { x: 4.5, y: 5.5 },
