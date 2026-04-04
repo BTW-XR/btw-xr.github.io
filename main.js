@@ -12,7 +12,7 @@ const CONFIG = {
     FOV: 30,
     NEAR: 0.1,
     FAR: 1000,
-    Y_POSITION: 0.2,
+    Y_POSITION: 0.3,
     Z_DESKTOP: 1,
     Z_MOBILE: 2,
   },
@@ -21,6 +21,7 @@ const CONFIG = {
     AMBIENT_INTENSITY: 0.3,
   },
   MOBILE_BREAKPOINT: 768,
+  RESET_SCROLL_TO_TOP: false,
   EDGE_THRESHOLD_ANGLE: 10,
   OPACITY: {
     VISIBLE: 1,
@@ -178,6 +179,8 @@ const _rightWorldPos = new THREE.Vector3();
  * Resets scroll position to top and refreshes ScrollTrigger
  */
 function resetScrollToTop() {
+  if (!CONFIG.RESET_SCROLL_TO_TOP) return;
+
   window.scrollTo(0, 0);
   if (window.ScrollTrigger) {
     ScrollTrigger.refresh();
@@ -192,6 +195,9 @@ function initScrollRestoration() {
   if ('scrollRestoration' in history) {
     history.scrollRestoration = 'manual';
   }
+
+  // Only initialize scroll reset behavior when enabled in CONFIG
+  if (!CONFIG.RESET_SCROLL_TO_TOP) return;
 
   resetScrollToTop();
   window.addEventListener('DOMContentLoaded', resetScrollToTop);
@@ -232,19 +238,28 @@ window.addEventListener('DOMContentLoaded', updateScrollProgressBar);
  */
 function updateInfoLinksInteractivity(opacity) {
   const infoBlock = document.querySelector('#infoBlock');
-  if (!infoBlock) return;
+  const mobileInfoFooter = document.querySelector('#mobileInfoFooter');
+
+  if (!infoBlock && !mobileInfoFooter) return;
 
   const isHidden = opacity <= CONFIG.OPACITY.THRESHOLD_LOW;
-  infoBlock.style.pointerEvents = isHidden ? 'none' : 'auto';
+  [infoBlock, mobileInfoFooter].forEach((container) => {
+    if (!container) return;
+    container.style.pointerEvents = isHidden ? 'none' : 'auto';
+  });
 
-  infoBlock.querySelectorAll('a').forEach((link) => {
-    if (isHidden) {
-      link.setAttribute('tabindex', '-1');
-      link.setAttribute('aria-disabled', 'true');
-    } else {
-      link.removeAttribute('tabindex');
-      link.removeAttribute('aria-disabled');
-    }
+  [infoBlock, mobileInfoFooter].forEach((container) => {
+    if (!container) return;
+
+    container.querySelectorAll('a').forEach((link) => {
+      if (isHidden) {
+        link.setAttribute('tabindex', '-1');
+        link.setAttribute('aria-disabled', 'true');
+      } else {
+        link.removeAttribute('tabindex');
+        link.removeAttribute('aria-disabled');
+      }
+    });
   });
 }
 
@@ -496,10 +511,12 @@ function initScrollAnimations(sceneObjects) {
         const title = document.querySelector('#title');
         const scrollHint = document.querySelector('#scrollHint');
         const infoBlock = document.querySelector('#infoBlock');
+        const mobileInfoFooter = document.querySelector('#mobileInfoFooter');
 
         if (title) title.style.opacity = overlayOpacity.value;
         if (scrollHint) scrollHint.style.opacity = overlayOpacity.value;
         if (infoBlock) infoBlock.style.opacity = overlayOpacity.value;
+        if (mobileInfoFooter) mobileInfoFooter.style.opacity = overlayOpacity.value;
 
         updateInfoLinksInteractivity(overlayOpacity.value);
       },
@@ -629,15 +646,12 @@ function initScrollAnimations(sceneObjects) {
       rightBlend: 0,
       duration: config.stage4.rotateToCenter,
       ease: 'none',
-      onComplete: () => {
-        cameraLookControl.lockCenter = 1;
-      },
-      onReverseComplete: () => {
-        cameraLookControl.lockCenter = 0;
-      },
     },
     stage4Start
   );
+  // Lock to center only after the rotate-back tween finishes so reverse scrub
+  // can smoothly interpolate back toward the right panel without snapping.
+  timeline.set(cameraLookControl, { lockCenter: 1 }, stage4Start + config.stage4.rotateToCenter);
   timeline.to(
     camera.position,
     {

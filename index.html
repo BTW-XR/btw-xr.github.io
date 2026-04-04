@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"
     />
     <title>Break the Window</title>
     <link rel="icon" type="image/png" href="favicon.png" />
@@ -38,87 +38,162 @@
       <div id="pageProgressBar" class="h-full w-0 bg-black"></div>
     </div>
 
+    <img
+      src="images/icon.png"
+      alt=""
+      class="h-8 md:h-10 fixed top-4 right-4 z-[2]"
+    />
+
     <div>
       <h1
-        class="fixed left-1/2 -translate-x-1/2 -translate-y-1/2 text-black font-sans font-bold z-[2] tracking-tight leading-tight top-[20%] text-3xl w-[96%] md:top-[15%] md:text-5xl md:w-[70%] md:tracking-tighter md:leading-tight"
+        class="fixed left-1/2 -translate-x-1/2 -translate-y-1/2 text-black font-sans font-bold z-[2] tracking-tight leading-tight top-[18%] text-3xl w-[96%] md:top-[15%] md:text-3xl md:w-[70%] md:tracking-tighter md:leading-tight"
         id="title"
       >
-        <span class="text-5xl md:text-6xl">Break the Window:</span>
+        <span class="text-5xl md:text-5xl"> Break the Window: </span>
         <br />
         Exploring Spatial Decomposition of Webpages in XR
       </h1>
 
       <div
-        class="z-[2] fixed -translate-y-1/2 top-[53%] text-3xl left-[10%] w-[80%] md:top-[55%] md:text-5xl md:left-[25%] md:w-[50%] flex flex-col items-center"
+        class="z-[2] fixed -translate-y-1/2 top-[50%] text-3xl left-[5%] w-[90%] md:top-[50%] md:text-5xl md:left-[20%] md:w-[60%] flex flex-col items-center"
         id="infoBlock"
       >
-        <!-- Author Names -->
         <div
-          class="relative text-sm md:text-xl mb-8 text-center flex flex-wrap justify-center gap-x-6 md:gap-x-12 gap-y-2"
+          class="relative flex w-full items-center justify-center md:w-[90%]"
         >
-          <a
-            href="https://www.chenyang.me/"
-            class="text-blue-900 hover:text-blue-600"
-            >Chenyang Zhang</a
+          <!-- Author Names (left rail on desktop, stacked below on mobile) -->
+          <div
+            class="hidden md:flex absolute right-[calc(100%+1.25rem)] top-1/2 -translate-y-1/2 w-48 text-sm text-right flex-col gap-y-2"
           >
-          <a href="#" class="text-blue-900 hover:text-blue-600"
-            >Tianjian Wei</a
-          >
-          <a
-            href="https://alexanderyang.me/"
-            class="text-blue-900 hover:text-blue-600"
-            >Haoyang Yang</a
-          >
-          <a
-            href="https://margonzalezfranco.github.io/"
-            class="text-blue-900 hover:text-blue-600"
-            >Mar Gonzalez-Franco</a
-          >
-          <a
-            href="https://ivi.cc.gatech.edu/pi.html"
-            class="text-blue-900 hover:text-blue-600"
-            >Yalong Yang</a
-          >
-          <a
-            href="https://www.ejgonzalez.me/"
-            class="text-blue-900 hover:text-blue-600"
-            >Eric J Gonzalez</a
-          >
-        </div>
+            <a
+              href="https://www.chenyang.me/"
+              class="text-blue-900 hover:text-blue-600"
+              >Chenyang Zhang</a
+            >
+            <a href="#" class="text-blue-900 hover:text-blue-600"
+              >Tianjian Wei</a
+            >
+            <a
+              href="https://alexanderyang.me/"
+              class="text-blue-900 hover:text-blue-600"
+              >Haoyang Yang</a
+            >
+            <a
+              href="https://margonzalezfranco.github.io/"
+              class="text-blue-900 hover:text-blue-600"
+              >Mar Gonzalez-Franco</a
+            >
+            <a
+              href="https://ivi.cc.gatech.edu/pi.html"
+              class="text-blue-900 hover:text-blue-600"
+              >Yalong Yang</a
+            >
+            <a
+              href="https://www.ejgonzalez.me/"
+              class="text-blue-900 hover:text-blue-600"
+              >Eric J Gonzalez</a
+            >
+          </div>
 
-        <!-- External Links -->
-        <div
-          class="relative flex flex-row gap-6 text-center justify-center mb-10"
-        >
-          <a
-            href="https://arxiv.org/abs/2603.02471"
-            class="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-full transition flex items-center justify-center gap-2 text-xs"
+          <img
+            src="images/first-image.png"
+            alt=""
+            class="relative z-[5] w-[99%] md:w-full"
+          />
+
+          <!-- External Links (right rail on desktop, stacked below on mobile) -->
+          <div
+            class="hidden md:flex absolute left-[calc(100%+1.25rem)] top-1/2 -translate-y-1/2 flex-col gap-3"
           >
-            <img
-              src="images/arXiv.png"
-              alt="arXiv icon"
-              class="h-4"
-            />
-            <span class="text-xs">arXiv</span>
-          </a>
-          <a
-            href="https://github.com/BTW-XR"
-            class="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-full transition flex items-center justify-center gap-2 text-xs"
-          >
-            <img
-              src="images/GitHub_Invertocat_Black.png"
-              alt="Code icon"
-              class="h-4"
-            />
-            <span class="text-xs">Code</span>
-          </a>
+            <a
+              href="https://arxiv.org/abs/2603.02471"
+              class="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-full transition flex items-center justify-center gap-2 text-xs"
+            >
+              <img
+                src="images/arXiv.png"
+                alt="arXiv icon"
+                class="h-4"
+              />
+              <span class="text-xs">arXiv</span>
+            </a>
+            <a
+              href="https://github.com/BTW-XR"
+              class="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-full transition flex items-center justify-center gap-2 text-xs"
+            >
+              <img
+                src="images/GitHub_Invertocat_Black.png"
+                alt="Code icon"
+                class="h-4"
+              />
+              <span class="text-xs">Code</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
 
     <div
+      id="mobileInfoFooter"
+      class="fixed z-[2] left-1/2 -translate-x-1/2 bottom-[6%] w-[92%] md:hidden flex flex-col items-center gap-y-3"
+    >
+      <div
+        class="text-xs text-center flex flex-wrap justify-center gap-x-3 gap-y-1"
+      >
+        <a
+          href="https://www.chenyang.me/"
+          class="text-blue-900 hover:text-blue-600"
+          >Chenyang Zhang</a
+        >
+        <a href="#" class="text-blue-900 hover:text-blue-600"
+          >Tianjian Wei</a
+        >
+        <a
+          href="https://alexanderyang.me/"
+          class="text-blue-900 hover:text-blue-600"
+          >Haoyang Yang</a
+        >
+        <a
+          href="https://margonzalezfranco.github.io/"
+          class="text-blue-900 hover:text-blue-600"
+          >Mar Gonzalez-Franco</a
+        >
+        <a
+          href="https://ivi.cc.gatech.edu/pi.html"
+          class="text-blue-900 hover:text-blue-600"
+          >Yalong Yang</a
+        >
+        <a
+          href="https://www.ejgonzalez.me/"
+          class="text-blue-900 hover:text-blue-600"
+          >Eric J Gonzalez</a
+        >
+      </div>
+
+      <div class="flex flex-row gap-3 text-center justify-center">
+        <a
+          href="https://arxiv.org/abs/2603.02471"
+          class="bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded-full transition flex items-center justify-center gap-2 text-xs"
+        >
+          <img src="images/arXiv.png" alt="arXiv icon" class="h-3" />
+          <span class="text-xs">arXiv</span>
+        </a>
+        <a
+          href="https://github.com/BTW-XR"
+          class="bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded-full transition flex items-center justify-center gap-2 text-xs"
+        >
+          <img
+            src="images/GitHub_Invertocat_Black.png"
+            alt="Code icon"
+            class="h-3"
+          />
+          <span class="text-xs">Code</span>
+        </a>
+      </div>
+    </div>
+
+    <div
       id="scrollHint"
-      class="fixed z-[2] text-center left-1/2 -translate-x-1/2 top-[90%] md:top-[80%] w-[96%] text-sm text-gray-500"
+      class="fixed z-[2] text-center left-1/2 -translate-x-1/2 bottom-[0%] md:top-[80%] w-[96%] text-sm text-gray-500"
     >
       Keep Scrolling Down
       <div
@@ -131,7 +206,7 @@
     <!-- Panel Content for Stage 3 -->
     <div
       id="middlePanelContent"
-      class="fixed top-[10%] translate-y-0 left-1/2 -translate-x-1/2 w-[70%] max-h-[calc(var(--app-vh)*80)] overflow-y-auto z-[3] pointer-events-none flex flex-col gap-y-8 md:top-[46%] md:-translate-y-1/2 md:max-h-none md:overflow-visible md:w-[50%] md:left-[25%] md:-translate-x-0"
+      class="rounded-lg fixed top-[10%] translate-y-0 left-1/2 -translate-x-1/2 w-[70%] max-h-[calc(var(--app-vh)*80)] overflow-y-auto z-[3] pointer-events-none flex flex-col gap-y-8 md:top-[46%] md:-translate-y-1/2 md:max-h-none md:overflow-visible md:w-[50%] md:left-[25%] md:-translate-x-0"
       style="opacity: 0"
     >
       <div class="flex flex-row">
@@ -160,83 +235,163 @@
 
     <div
       id="leftPanelContent"
-      class="fixed top-[10%] translate-y-0 left-1/2 -translate-x-1/2 w-[75%] max-h-[calc(var(--app-vh)*80)] overflow-y-auto z-[3] pointer-events-none md:top-1/2 md:-translate-y-1/2 md:max-h-none md:overflow-visible md:w-[38%] md:left-[30%] md:-translate-x-0"
+      class="rounded-lg fixed top-[10%] translate-y-0 left-1/2 -translate-x-1/2 w-[75%] max-h-[calc(var(--app-vh)*80)] overflow-y-auto z-[3] pointer-events-none flex flex-col gap-y-8 md:top-1/2 md:-translate-y-1/2 md:w-[60%] md:left-[20%] md:-translate-x-0"
       style="opacity: 0"
     >
       <div>
-        <h2 class="text-xl font-bold mb-4 text-gray-800">Abstract</h2>
-        <p class="text-gray-600 mb-3 text-sm md:text-base">
-          Most XR web browsers still present webpages as a single
-          floating window, carrying over desktop design assumptions
-          into immersive space. We explore an alternative by breaking
-          the browser window and distributing a webpage into spatial
-          UI chunks within a mixed-reality workspace. We present
-          Break-the-Window (BTW), an exploratory prototype that
-          spatially decomposes live, fully functional webpages into
-          movable panels supporting mid-air and surface-attached
-          placement, as well as direct touch and ray-based
-          interaction. Through a formative study with XR practitioners
-          and an exploratory qualitative study with 15 participants,
-          we observed how spatial decomposition supports distributed
-          attention and spatial meaning-making, while also surfacing
-          challenges around coordination effort, interaction
-          precision, and the lack of shared spatial UI conventions.
-          This work invites discussion on how web interfaces might be
-          reimagined for spatial computing beyond the single-window
-          paradigm.
-        </p>
+        <h2 class="text-xl font-bold mb-4 text-gray-800">
+          System Overview
+        </h2>
+        <img
+          src="images/system.png"
+          alt="System Diagram"
+          class="hidden md:block rounded-lg w-[90%] mb-8 md:w-[90%]"
+        />
+        <img
+          src="images/system-vert.png"
+          alt="System Diagram"
+          class="block md:hidden rounded-lg w-[100%] mb-8 md:w-[90%]"
+        />
+        <div class="w-[90%]">
+          A live webpage is <b>rendered in a standard browser</b> and
+          <b>streamed into XR</b> as multiple spatial panels, while
+          user interactions in XR are <b>forwarded back</b> to the
+          original webpage in real time.
+        </div>
       </div>
     </div>
 
     <div
       id="rightPanelContent"
-      class="fixed top-[10%] translate-y-0 left-1/2 -translate-x-1/2 w-[75%] max-h-[calc(var(--app-vh)*80)] overflow-y-auto z-[3] pointer-events-none md:top-1/2 md:-translate-y-1/2 md:max-h-none md:overflow-visible md:w-[50%] md:left-[27%] md:-translate-x-0"
+      class="fixed rounded-lg top-[10%] translate-y-0 left-1/2 -translate-x-1/2 w-[75%] max-h-[calc(var(--app-vh)*80)] overflow-y-auto z-[3] pointer-events-none flex flex-col gap-y-8 md:top-1/2 md:-translate-y-1/2 md:w-[60%] md:left-[20%] md:-translate-x-0"
       style="opacity: 0"
     >
-      <div class="flex flex-col gap-y-4 md:flex-row md:gap-x-4">
-        <div class="md:w-1/2">
-          <h2 class="text-xl font-bold mb-4 text-gray-800">
-            System Overview
-          </h2>
-          <div class="flex flex-col md:items-start items-center">
-            <img
-              src="images/system.png"
-              alt="System Diagram"
-              class="rounded-lg w-[80%] mb-8 md:w-[90%]"
-            />
-          </div>
-          <h2
-            class="hidden md:block text-xl font-bold mb-4 text-gray-800"
-          >
-            User Study
-          </h2>
-          <img
-            src="images/study-setup.png"
-            alt="System Diagram"
-            class="hidden md:block rounded-lg w-[100%] mb-8 md:w-[90%]"
-          />
+      <div>
+        <h2 class="text-xl font-bold mb-4 text-gray-800">
+          User Study
+        </h2>
+        <img
+          src="images/study-setup.png"
+          alt="Study Results"
+          class="rounded-lg w-[100%] mb-1 md:w-[100%]"
+        />
+        <div
+          class="border-t border-gray-200 pt-2 text-xs uppercase tracking-widest text-gray-500 mb-7"
+        >
+          User study setup
         </div>
-        <div class="md:w-1/2">
-          <h2 class="text-xl font-bold mb-4 text-gray-800">
-            More pictures
-          </h2>
-          <div class="flex flex-col md:items-start items-center">
-            <img
-              src="images/demo-youtube.png"
-              alt="YouTube"
-              class="rounded-lg w-[80%] mb-4 md:w-[80%]"
-            />
-            <img
-              src="images/demo-slides.png"
-              alt="Slides"
-              class="rounded-lg w-[80%] mb-4 md:w-[80%]"
-            />
-            <img
-              src="images/demo-maps.png"
-              alt="Maps"
-              class="rounded-lg w-[80%] mb-4 md:w-[80%]"
-            />
-          </div>
+        <img
+          src="images/demo-maps.png"
+          alt="Study Results"
+          class="rounded-lg w-[100%] mb-2 md:w-[100%]"
+        />
+        <div
+          class="border-t border-gray-200 pt-2 text-xs uppercase tracking-widest text-gray-500 mb-7"
+        >
+          Google Maps setup
+        </div>
+        <img
+          src="images/demo-youtube.png"
+          alt="Study Results"
+          class="rounded-lg w-[100%] mb-2 md:w-[100%]"
+        />
+        <div
+          class="border-t border-gray-200 pt-2 text-xs uppercase tracking-widest text-gray-500 mb-7"
+        >
+          YouTube setup
+        </div>
+        <img
+          src="images/demo-slides.png"
+          alt="Study Results"
+          class="rounded-lg w-[100%] mb-2 md:w-[100%]"
+        />
+        <div
+          class="border-t border-gray-200 pt-2 text-xs uppercase tracking-widest text-gray-500 mb-7"
+        >
+          Slides setup
+        </div>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold mb-4 text-gray-800">Findings</h2>
+        <img
+          src="images/5-a.png"
+          alt="Findings 5-a"
+          class="rounded-lg w-[100%] mb-2 md:w-[100%]"
+        />
+        <div
+          class="border-t border-gray-200 pt-2 text-xs uppercase tracking-widest text-gray-500 mb-0"
+        >
+          Figure 5-a
+        </div>
+        <div class="text-sm text-gray-600 leading-relaxed mb-7">
+          <b>Finding 1:</b> Attention and interaction become
+          distributed in space. While this allows for simultaneous
+          content viewing, it increases coordination costs and
+          physical fatigue due to the effort required to manage
+          distant or off-center panels.
+        </div>
+
+        <img
+          src="images/5-bc.png"
+          alt="Findings 5-bc"
+          class="rounded-lg w-[100%] mb-2 md:w-[100%]"
+        />
+        <div
+          class="border-t border-gray-200 pt-2 text-xs uppercase tracking-widest text-gray-500 mb-0"
+        >
+          Figure 5-bc
+        </div>
+        <div class="text-sm text-gray-600 leading-relaxed mb-7">
+          <b>Finding 2:</b> Space becomes a semantic substrate. Over
+          time, participants formed location-function bindings, using
+          spatial memory to retrieve information. However,
+          misplacement proved costly: panels that appeared too
+          near/far, or frequently moved disrupted expectations and led
+          to hesitation.
+        </div>
+
+        <img
+          src="images/5-def.png"
+          alt="Findings 5-f"
+          class="rounded-lg w-[100%] mb-2 md:w-[100%]"
+        />
+        <div
+          class="border-t border-gray-200 pt-2 text-xs uppercase tracking-widest text-gray-500 mb-0"
+        >
+          Figure 5-def
+        </div>
+        <div class="text-sm text-gray-600 leading-relaxed mb-7">
+          <b>Finding 3:</b> Physical anchoring both stabilizes and
+          complicates interaction. Anchoring virtual content to real
+          surfaces improved perceived control and precision.
+          Unfortunately, this introduced conflicts where virtual
+          panels occlude physical objects and writing gestures are
+          mistakenly interpreted as inputs.
+        </div>
+
+        <img
+          src="images/5-gh.png"
+          alt="Findings 5-gh"
+          class="rounded-lg w-[100%] mb-2 md:w-[100%]"
+        />
+        <div
+          class="border-t border-gray-200 pt-2 text-xs uppercase tracking-widest text-gray-500 mb-0"
+        >
+          Figure 5-gh
+        </div>
+        <div class="text-sm text-gray-600 leading-relaxed mb-7">
+          <b>Finding 4:</b> Immersion-driven engagement does not imply
+          productivity. BTW was widely described as novel and
+          engaging, particularly for exploratory and visual scenarios
+          such as browsing and media consumption. However,
+          participants did not consistently feel faster or more
+          efficient
+        </div>
+        <div class="text-sm text-gray-600 leading-relaxed mb-7">
+          <b>Finding 5:</b> Spatial web browsing lacks a shared UI
+          grammar. Across websites, participants improvised their own
+          layout rules but repeatedly noted the absence of conventions
+          (e.g., “no rule for where things should go”).
         </div>
       </div>
     </div>
@@ -245,18 +400,22 @@
 
     <section
       id="stage5Content"
-      class="relative z-[4] mx-auto w-[92%] max-w-4xl rounded-2xl bg-white/85 px-6 py-8 text-left md:w-[70%]"
+      class="relative z-[4] mx-auto w-[92%] max-w-4xl rounded-2xl bg-white/85 px-6 py-2 text-left md:w-[70%]"
       style="opacity: 0"
     >
-      <h3 class="mb-6 text-xl font-bold text-gray-600 md:text-3xl">
+      <h3 class="mt-0 text-xl font-bold text-gray-600 md:text-3xl">
         Acknowledgments
       </h3>
+      <p class="text-gray-600 text-sm md:text-base">
+        This material is based upon work supported in part by the
+        National Science Foundation under Grant No. IIS-2441310.
+      </p>
 
-      <h3 class="mb-6 text-xl font-bold text-gray-600 md:text-3xl">
+      <h3 class="mt-6 text-xl font-bold text-gray-600 md:text-3xl">
         BibTeX
       </h3>
       <pre
-        class="bg-gray-100 p-0 rounded-md overflow-x-auto text-left font-mono text-xs text-gray-800"
+        class="bg-gray-100 p-0 rounded-md overflow-x-auto mb-8 text-left font-mono text-xs text-gray-800"
       >
 <code>   @inproceedings{Zhang:2026:BreakTheWindow,
       author    = {Zhang, Chenyang and Wei, Tianjian and Yang, Haoyang and Gonzalez-Franco, Mar and Yang, Yalong and Gonzalez, Eric J.},
@@ -264,6 +423,12 @@
       booktitle = {Extended Abstracts of the 2026 CHI Conference on Human Factors in Computing Systems},
       year      = {2026}}</code>
       </pre>
+      <p class="text-gray-600 text-sm md:text-base text-center">
+        Website by
+        <a href="#" class="text-blue-900 hover:text-blue-600"
+          >Tianjian Wei</a
+        >
+      </p>
     </section>
 
     <div class="h-[2vh] md:h-[5vh]"></div>
@@ -275,5 +440,25 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="main.js"></script>
+    <script>
+      // Disable pinch-zoom / multi-touch zoom
+      (function () {
+        // iOS Safari: prevent gesturestart zoom
+        document.addEventListener("gesturestart", function (e) {
+          e.preventDefault();
+        });
+
+        // Other mobile browsers: block touchmove when >1 touch point
+        document.addEventListener(
+          "touchmove",
+          function (e) {
+            if (e.touches && e.touches.length > 1) {
+              e.preventDefault();
+            }
+          },
+          { passive: false },
+        );
+      })();
+    </script>
   </body>
 </html>
