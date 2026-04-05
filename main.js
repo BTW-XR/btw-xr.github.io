@@ -590,7 +590,9 @@ function opacityTweenDOM(timeline, element, opacity, duration, at) {
   if (!element) return;
 
   const isPanelContent = element.id ? PANEL_SCROLL_IDS.has(element.id) : false;
+  const isFadeOutToHidden = opacity <= CONFIG.OPACITY.THRESHOLD_LOW;
   let wasFullyVisible = false;
+  let wasHidden = false;
 
   timeline.to(
     element,
@@ -600,6 +602,12 @@ function opacityTweenDOM(timeline, element, opacity, duration, at) {
       onUpdate: () => {
         const currentOpacity = Number(gsap.getProperty(element, 'opacity'));
         element.style.pointerEvents = currentOpacity > 0.5 ? 'auto' : 'none';
+
+        const isHidden = currentOpacity <= CONFIG.OPACITY.THRESHOLD_LOW;
+        if (isPanelContent && isFadeOutToHidden && isHidden && !wasHidden) {
+          element.scrollTop = 0;
+        }
+        wasHidden = isHidden;
 
         if (!isPanelContent || opacity < CONFIG.OPACITY.VISIBLE) return;
 
