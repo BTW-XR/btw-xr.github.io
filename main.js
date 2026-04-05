@@ -29,6 +29,12 @@ const CONFIG = {
     THRESHOLD_LOW: 0.01,
     THRESHOLD_HIGH: 0.99,
   },
+  SCROLL_LOCK: {
+    MIN_LOCK_MS: 120,
+    QUIET_WINDOW_MS: 120,
+    MAX_LOCK_MS: 1400,
+    FULL_OPACITY_THRESHOLD: 0.999,
+  },
 };
 
 const ANIMATION_CONFIG = {
@@ -231,6 +237,166 @@ window.addEventListener('scroll', updateScrollProgressBar, { passive: true });
 window.addEventListener('load', updateScrollProgressBar);
 window.addEventListener('DOMContentLoaded', updateScrollProgressBar);
 
+const PANEL_SCROLL_IDS = new Set(['middlePanelContent', 'leftPanelContent', 'rightPanelContent']);
+
+const scrollLockState = {
+  startedAt: 0,
+  quietUntil: 0,
+  styleApplied: false,
+  anchorY: window.scrollY,
+  rafId: null,
+  htmlOverflow: '',
+  bodyOverflow: '',
+  bodyTouchAction: '',
+};
+
+/**
+ * Whether the temporary settle lock is currently active.
+ * @returns {boolean}
+ */
+function isScrollLockActive() {
+  const now = performance.now();
+  const withinMax = now - scrollLockState.startedAt < CONFIG.SCROLL_LOCK.MAX_LOCK_MS;
+  return scrollLockState.startedAt > 0 && now < scrollLockState.quietUntil && withinMax;
+}
+
+/**
+ * Temporarily applies hard scroll suppression styles while draining momentum.
+ */
+function applyScrollLockStyles() {
+  if (scrollLockState.styleApplied) return;
+
+  const html = document.documentElement;
+  const body = document.body;
+
+  if (!html || !body) return;
+
+  scrollLockState.htmlOverflow = html.style.overflow;
+  scrollLockState.bodyOverflow = body.style.overflow;
+  scrollLockState.bodyTouchAction = body.style.touchAction;
+
+  html.style.overflow = 'hidden';
+  body.style.overflow = 'hidden';
+  body.style.touchAction = 'none';
+  scrollLockState.styleApplied = true;
+}
+
+/**
+ * Restores styles applied by applyScrollLockStyles.
+ */
+function restoreScrollLockStyles() {
+  if (!scrollLockState.styleApplied) return;
+
+  const html = document.documentElement;
+  const body = document.body;
+
+  if (html) html.style.overflow = scrollLockState.htmlOverflow;
+  if (body) {
+    body.style.overflow = scrollLockState.bodyOverflow;
+    body.style.touchAction = scrollLockState.bodyTouchAction;
+  }
+
+  scrollLockState.styleApplied = false;
+}
+
+/**
+ * Forces page scroll back to anchor and extends quiet window.
+ */
+function absorbScrollMomentum() {
+  if (window.scrollY !== scrollLockState.anchorY) {
+    window.scrollTo(0, scrollLockState.anchorY);
+    scrollLockState.quietUntil = performance.now() + CONFIG.SCROLL_LOCK.QUIET_WINDOW_MS;
+  }
+}
+
+/**
+ * Starts/extends an adaptive lock that drains inertial page progression.
+ * @param {number} durationMs
+ */
+function activateScrollSettleLock(durationMs = CONFIG.SCROLL_LOCK.MIN_LOCK_MS) {
+  const now = performance.now();
+  scrollLockState.anchorY = window.scrollY;
+
+  if (!isScrollLockActive()) {
+    scrollLockState.startedAt = now;
+  }
+
+  scrollLockState.quietUntil = Math.max(scrollLockState.quietUntil, now + durationMs);
+  applyScrollLockStyles();
+
+  if (scrollLockState.rafId !== null) return;
+
+  const tick = () => {
+    if (!isScrollLockActive()) {
+      scrollLockState.rafId = null;
+      scrollLockState.startedAt = 0;
+      scrollLockState.quietUntil = 0;
+      restoreScrollLockStyles();
+      return;
+    }
+
+    absorbScrollMomentum();
+
+    scrollLockState.rafId = requestAnimationFrame(tick);
+  };
+
+  scrollLockState.rafId = requestAnimationFrame(tick);
+}
+
+/**
+ * Blocks input-driven page scrolling while the settle lock is active.
+ */
+function initScrollSettleLockHandlers() {
+  window.addEventListener('scroll', () => {
+    if (!isScrollLockActive()) return;
+    absorbScrollMomentum();
+  }, { passive: true, capture: true });
+
+  window.addEventListener(
+    'wheel',
+    (event) => {
+      if (!isScrollLockActive()) return;
+      event.preventDefault();
+      scrollLockState.quietUntil = performance.now() + CONFIG.SCROLL_LOCK.QUIET_WINDOW_MS;
+    },
+    { passive: false, capture: true }
+  );
+
+  window.addEventListener(
+    'touchmove',
+    (event) => {
+      if (!isScrollLockActive()) return;
+      event.preventDefault();
+      scrollLockState.quietUntil = performance.now() + CONFIG.SCROLL_LOCK.QUIET_WINDOW_MS;
+    },
+    { passive: false, capture: true }
+  );
+
+  window.addEventListener(
+    'keydown',
+    (event) => {
+      if (!isScrollLockActive()) return;
+
+      const blockedKeys = new Set([
+        'ArrowDown',
+        'ArrowUp',
+        'PageDown',
+        'PageUp',
+        'Home',
+        'End',
+        ' ',
+      ]);
+
+      if (!blockedKeys.has(event.key)) return;
+      event.preventDefault();
+      scrollLockState.quietUntil = performance.now() + CONFIG.SCROLL_LOCK.QUIET_WINDOW_MS;
+    },
+    { capture: true }
+  );
+}
+
+initScrollSettleLockHandlers();
+
 /**
  * Enables/disables links in the info block based on opacity.
  * Links are non-interactive and removed from tab order when fully hidden.
@@ -423,6 +589,9 @@ function opacityTweenObj(timeline, object3D, opacity, duration, at) {
 function opacityTweenDOM(timeline, element, opacity, duration, at) {
   if (!element) return;
 
+  const isPanelContent = element.id ? PANEL_SCROLL_IDS.has(element.id) : false;
+  let wasFullyVisible = false;
+
   timeline.to(
     element,
     {
@@ -431,6 +600,14 @@ function opacityTweenDOM(timeline, element, opacity, duration, at) {
       onUpdate: () => {
         const currentOpacity = Number(gsap.getProperty(element, 'opacity'));
         element.style.pointerEvents = currentOpacity > 0.5 ? 'auto' : 'none';
+
+        if (!isPanelContent || opacity < CONFIG.OPACITY.VISIBLE) return;
+
+        const isFullyVisible = currentOpacity >= CONFIG.SCROLL_LOCK.FULL_OPACITY_THRESHOLD;
+        if (isFullyVisible && !wasFullyVisible) {
+          activateScrollSettleLock();
+        }
+        wasFullyVisible = isFullyVisible;
       },
     },
     at
