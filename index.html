@@ -95,7 +95,13 @@
             >
           </div>
 
-          <video autoplay muted loop class="rounded-lg w-full">
+          <video
+            id="vid"
+            autoplay
+            muted
+            loop
+            class="rounded-lg w-full"
+          >
             <source src="images/BTW.mp4" type="video/mp4" />
             <img
               src="images/first-image.png"
@@ -103,6 +109,9 @@
               class="relative z-[5] w-[99%] md:w-full"
             />
           </video>
+          <script>
+            document.getElementById("vid").play();
+          </script>
 
           <!-- External Links (right rail on desktop, stacked below on mobile) -->
           <div
@@ -284,6 +293,7 @@
           User study setup
         </div>
         <video
+          id="vid"
           autoplay
           muted
           loop
@@ -292,6 +302,9 @@
           <source src="images/study.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
+        <script>
+          document.getElementById("vid").play();
+        </script>
         <div
           class="border-t border-gray-200 pt-2 text-xs uppercase tracking-widest text-gray-500 mb-7"
         >
