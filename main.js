@@ -39,6 +39,7 @@ const CONFIG = {
 
 const ANIMATION_CONFIG = {
   DESKTOP: {
+    stage0: { duration: 1.2 },
     stage1: { duration: 3.0, zoomAmount: 0.3 },
     stage2: {
       duration: 3.0,
@@ -67,6 +68,7 @@ const ANIMATION_CONFIG = {
     },
   },
   MOBILE: {
+    stage0: { duration: 1.0 },
     stage1: { duration: 1.5, zoomAmount: 0.4 },
     stage2: {
       duration: 2.0,
@@ -524,7 +526,7 @@ function processLoadedModel(gltf) {
   setObjectOpacity(sceneObjects.panelLeft, CONFIG.OPACITY.HIDDEN, true);
   setObjectOpacity(sceneObjects.panelCenter, CONFIG.OPACITY.HIDDEN, true);
   setObjectOpacity(sceneObjects.panelRight, CONFIG.OPACITY.HIDDEN, true);
-  setObjectOpacity(sceneObjects.panelWhole, CONFIG.OPACITY.VISIBLE, true);
+  setObjectOpacity(sceneObjects.panelWhole, CONFIG.OPACITY.HIDDEN, true);
 
   // Configure camera-facing panels
   cameraFacingPanels.length = 0;
@@ -666,12 +668,14 @@ function initScrollAnimations(sceneObjects) {
   const stage2Z = startZ + config.stage2.zoomAmount;
 
   // Calculate animation timing
+  const stage0Duration = config.stage0.duration;
   const stage1Duration = config.stage1.duration;
   const stage2Duration = config.stage2.duration;
   const timings = {
-    stage1Start: 0,
-    stage2Start: stage1Duration,
-    stage3Start: stage1Duration + stage2Duration,
+    stage0Start: 0,
+    stage1Start: stage0Duration,
+    stage2Start: stage0Duration + stage1Duration,
+    stage3Start: stage0Duration + stage1Duration + stage2Duration,
   };
 
   const timeline = gsap.timeline({
@@ -683,8 +687,18 @@ function initScrollAnimations(sceneObjects) {
     },
   });
 
+  // Stage 0: Whole panel appears before the existing stage flow.
+  opacityTweenObj(timeline, sceneObjects.panelWhole, 1, stage0Duration, timings.stage0Start);
+
   // Stage 1: Title/info fade while split panels fade in
+  const title = document.querySelector('#title');
+  const scrollHint = document.querySelector('#scrollHint');
+  const infoBlock = document.querySelector('#infoBlock');
+  const mobileInfoFooter = document.querySelector('#mobileInfoFooter');
+
   const overlayOpacity = { value: CONFIG.OPACITY.VISIBLE };
+  const introElements = [title, scrollHint, infoBlock, mobileInfoFooter];
+
   updateInfoLinksInteractivity(overlayOpacity.value);
 
   timeline.to(
@@ -693,15 +707,10 @@ function initScrollAnimations(sceneObjects) {
       value: CONFIG.OPACITY.HIDDEN,
       duration: stage1Duration,
       onUpdate: () => {
-        const title = document.querySelector('#title');
-        const scrollHint = document.querySelector('#scrollHint');
-        const infoBlock = document.querySelector('#infoBlock');
-        const mobileInfoFooter = document.querySelector('#mobileInfoFooter');
-
-        if (title) title.style.opacity = overlayOpacity.value;
-        if (scrollHint) scrollHint.style.opacity = overlayOpacity.value;
-        if (infoBlock) infoBlock.style.opacity = overlayOpacity.value;
-        if (mobileInfoFooter) mobileInfoFooter.style.opacity = overlayOpacity.value;
+        introElements.forEach((element) => {
+          if (!element) return;
+          element.style.opacity = String(overlayOpacity.value);
+        });
 
         updateInfoLinksInteractivity(overlayOpacity.value);
       },
