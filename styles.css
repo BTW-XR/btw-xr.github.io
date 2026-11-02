@@ -1,0 +1,140 @@
+/* A single native scroll surface for mouse, trackpad, touch and keyboard. */
+html {
+  scrollbar-gutter: stable;
+}
+
+body {
+  margin: 0;
+  background: white;
+}
+
+#webgl {
+  pointer-events: none;
+}
+
+#pageProgressBar {
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.intro-content,
+.story-section {
+  position: relative;
+  z-index: 3;
+  box-sizing: border-box;
+  min-height: 100vh;
+  min-height: 100svh;
+  margin-inline: auto;
+  padding-block: clamp(40px, 8vh, 96px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.intro-content {
+  width: min(94%, 1200px);
+  align-items: center;
+  gap: 3rem;
+  background: white;
+}
+
+#title {
+  width: min(100%, 900px);
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+}
+
+.intro-title {
+  font-size: clamp(2.3rem, 4vw, 3.2rem);
+}
+
+#infoBlock {
+  width: 64%;
+  margin-top: 2rem;
+}
+
+.story-section {
+  width: min(60%, 900px);
+  line-height: 1.65;
+  background: white;
+}
+
+.story-section > * {
+  flex-shrink: 0;
+}
+
+#middlePanelContent {
+  width: min(55%, 850px);
+}
+
+.story-section img,
+.story-section video,
+#infoBlock video {
+  height: auto;
+  max-width: 100%;
+}
+
+/* No empty animation runways if WebGL fails or motion is disabled. */
+.scene-transition {
+  height: 0;
+  pointer-events: none;
+}
+
+.scene-ready .scene-transition {
+  height: 125vh;
+  height: 125svh;
+}
+
+.scene-ready .scene-intro {
+  height: 165vh;
+  height: 165svh;
+}
+
+#stage5Content {
+  margin-block: 2rem;
+}
+
+@media (max-width: 1023px) {
+  #infoBlock {
+    width: 100%;
+  }
+}
+
+@media (max-width: 767px) {
+  .intro-content {
+    gap: 2rem;
+    padding-block: 4rem 2rem;
+  }
+
+  .story-section,
+  #middlePanelContent {
+    width: 90%;
+    padding-block: 3rem;
+  }
+
+  .story-section .text-sm {
+    font-size: 1rem;
+  }
+
+  .scene-ready .scene-transition {
+    height: 100vh;
+    height: 100svh;
+  }
+
+  .scene-ready .scene-intro {
+    height: 125vh;
+    height: 125svh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-ready .scene-transition,
+  #webgl {
+    display: none;
+  }
+
+  #scrollHint .animate-bounce {
+    animation: none;
+  }
+}

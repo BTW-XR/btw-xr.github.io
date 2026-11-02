@@ -4,32 +4,15 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"
+      content="width=device-width, initial-scale=1.0"
     />
     <title>Break the Window</title>
     <link rel="icon" type="image/png" href="favicon.png" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      :root {
-        --app-vh: 1vh;
-      }
-
-      html::-webkit-scrollbar,
-      body::-webkit-scrollbar {
-        display: none;
-      }
-
-      html,
-      body {
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-        scroll-behavior: auto !important;
-        overscroll-behavior: none;
-      }
-    </style>
+    <link rel="stylesheet" href="styles.css" />
   </head>
 
-  <body class="m-0 bg-white overflow-y-scroll">
+  <body class="m-0 bg-white">
     <div
       id="pageProgressTrack"
       class="fixed top-0 left-0 z-[9999] h-1 w-full bg-black/10 pointer-events-none"
@@ -44,18 +27,19 @@
       class="h-8 md:h-10 fixed top-4 right-4 z-[2]"
     />
 
-    <div>
+    <main>
+    <section id="introContent" class="intro-content">
       <h1
-        class="fixed left-1/2 -translate-x-1/2 -translate-y-1/2 text-black font-sans font-bold z-[2] tracking-tight leading-tight top-[18%] text-3xl w-[96%] md:top-[12%] md:text-3xl md:w-[70%] md:tracking-tighter md:leading-tight"
+        class="text-black font-sans font-bold tracking-tight leading-tight"
         id="title"
       >
-        <span class="text-5xl md:text-5xl"> Break the Window: </span>
+        <span class="intro-title"> Break the Window: </span>
         <br />
         Exploring Spatial Decomposition of Webpages in XR
       </h1>
 
       <div
-        class="z-[2] fixed -translate-y-1/2 top-[50%] text-3xl left-[5%] w-[90%] md:top-[50%] md:text-5xl md:left-[20%] md:w-[60%] flex flex-col items-center"
+        class="flex flex-col items-center"
         id="infoBlock"
       >
         <div
@@ -71,7 +55,7 @@
 
           <!-- Author Names (left rail on desktop, stacked below on mobile) -->
           <div
-            class="hidden md:flex absolute right-[calc(100%+1.25rem)] top-1/2 -translate-y-1/2 w-48 text-sm text-right flex-col gap-y-2"
+            class="hidden lg:flex absolute right-[calc(100%+1.25rem)] top-1/2 -translate-y-1/2 w-48 text-sm text-right flex-col gap-y-2"
           >
             <a
               href="https://www.chenyang.me/"
@@ -104,7 +88,7 @@
           </div>
 
           <video
-            id="vid"
+            id="introVideo" width="1920" height="1080"
             autoplay
             playsinline
             muted
@@ -113,18 +97,18 @@
           >
             <source src="images/BTW.mp4" type="video/mp4" />
             <img
-              src="images/first-image.png"
+              src="images/first-image.png" width="2816" height="1620"
               alt=""
               class="relative z-[5] w-[99%] md:w-full"
             />
           </video>
           <script>
-            document.getElementById("vid").play();
+            document.getElementById("introVideo").play().catch(() => {});
           </script>
 
           <!-- External Links (right rail on desktop, stacked below on mobile) -->
           <div
-            class="hidden md:flex absolute left-[calc(100%+1.25rem)] top-1/2 -translate-y-1/2 flex-col gap-3"
+            class="hidden lg:flex absolute left-[calc(100%+1.25rem)] top-1/2 -translate-y-1/2 flex-col gap-3"
           >
             <a
               href="https://arxiv.org/abs/2603.02471"
@@ -162,11 +146,10 @@
           </div>
         </div>
       </div>
-    </div>
 
     <div
       id="mobileInfoFooter"
-      class="fixed z-[2] left-1/2 -translate-x-1/2 bottom-[6%] w-[92%] md:hidden flex flex-col items-center gap-y-3"
+      class="lg:hidden flex flex-col items-center gap-y-3"
     >
       <div
         class="text-xs text-center flex flex-wrap justify-center gap-x-3 gap-y-1"
@@ -236,7 +219,7 @@
 
     <div
       id="scrollHint"
-      class="fixed z-[2] text-center left-1/2 -translate-x-1/2 bottom-[0%] md:top-[78%] w-[96%] text-sm text-gray-500"
+      class="text-center text-sm text-gray-500"
     >
       Keep Scrolling Down
       <div
@@ -246,21 +229,24 @@
       </div>
     </div>
 
-    <!-- Panel Content for Stage 3 -->
+    </section>
+
+    <div id="introTransition" class="scene-transition scene-intro" aria-hidden="true"></div>
+
+    <!-- Content stays in document flow; only the background scene is animated. -->
     <div
       id="middlePanelContent"
-      class="rounded-lg fixed top-[10%] translate-y-0 left-1/2 -translate-x-1/2 w-[70%] max-h-[calc(var(--app-vh)*80)] overflow-y-auto z-[3] pointer-events-none flex flex-col gap-y-8 md:top-[46%] md:-translate-y-1/2 md:max-h-none md:overflow-visible md:w-[50%] md:left-[25%] md:-translate-x-0"
-      style="opacity: 0"
+      class="story-section"
     >
       <div class="flex flex-row">
         <img
-          src="images/teaser.jpg"
+          src="images/teaser.jpg" width="5100" height="1680"
           alt="Teaser Image"
           class="hidden md:block mt-10 rounded-lg w-full"
         />
 
         <img
-          src="images/teaser-vert.png"
+          src="images/teaser-vert.png" width="880" height="1273"
           alt="Teaser Image Mobile"
           class="block md:hidden mt-3 rounded-lg"
         />
@@ -276,22 +262,23 @@
       </p>
     </div>
 
+    <div id="leftTransition" class="scene-transition" aria-hidden="true"></div>
+
     <div
       id="leftPanelContent"
-      class="rounded-lg fixed top-[10%] translate-y-0 left-1/2 -translate-x-1/2 w-[75%] max-h-[calc(var(--app-vh)*80)] overflow-y-auto z-[3] pointer-events-none flex flex-col gap-y-8 md:top-1/2 md:-translate-y-1/2 md:w-[60%] md:left-[20%] md:-translate-x-0"
-      style="opacity: 0"
+      class="story-section"
     >
       <div>
         <h2 class="text-xl font-bold mb-4 text-gray-800">
           System Overview
         </h2>
         <img
-          src="images/system.png"
+          src="images/system.png" width="2259" height="990"
           alt="System Diagram"
           class="hidden md:block rounded-lg w-[90%] mb-8 md:w-[90%]"
         />
         <img
-          src="images/system-vert.png"
+          src="images/system-vert.png" width="1092" height="1800"
           alt="System Diagram"
           class="block md:hidden rounded-lg w-[100%] mb-8 md:w-[90%]"
         />
@@ -304,17 +291,18 @@
       </div>
     </div>
 
+    <div id="rightTransition" class="scene-transition" aria-hidden="true"></div>
+
     <div
       id="rightPanelContent"
-      class="fixed rounded-lg top-[10%] translate-y-0 left-1/2 -translate-x-1/2 w-[75%] max-h-[calc(var(--app-vh)*80)] overflow-y-auto z-[3] pointer-events-none flex flex-col gap-y-8 md:top-1/2 md:-translate-y-1/2 md:w-[60%] md:left-[20%] md:-translate-x-0"
-      style="opacity: 0"
+      class="story-section"
     >
       <div>
         <h2 class="text-xl font-bold mb-4 text-gray-800">
           User Study
         </h2>
         <img
-          src="images/study-setup.png"
+          src="images/study-setup.png" width="1600" height="915"
           alt="Study Results"
           class="rounded-lg w-[100%] mb-1 md:w-[100%]"
         />
@@ -324,7 +312,7 @@
           User study setup
         </div>
         <video
-          id="vid"
+          id="studyVideo" width="794" height="454"
           autoplay
           playsinline
           muted
@@ -335,7 +323,7 @@
           Your browser does not support the video tag.
         </video>
         <script>
-          document.getElementById("vid").play();
+          document.getElementById("studyVideo").play().catch(() => {});
         </script>
         <div
           class="border-t border-gray-200 pt-2 text-xs uppercase tracking-widest text-gray-500 mb-7"
@@ -343,7 +331,7 @@
           User study demo video
         </div>
         <img
-          src="images/demo-maps.png"
+          src="images/demo-maps.png" width="1440" height="880"
           alt="Study Results"
           class="rounded-lg w-[100%] mb-2 md:w-[100%]"
         />
@@ -353,7 +341,7 @@
           Google Maps setup
         </div>
         <img
-          src="images/demo-youtube.png"
+          src="images/demo-youtube.png" width="1440" height="880"
           alt="Study Results"
           class="rounded-lg w-[100%] mb-2 md:w-[100%]"
         />
@@ -363,7 +351,7 @@
           YouTube setup
         </div>
         <img
-          src="images/demo-slides.png"
+          src="images/demo-slides.png" width="1440" height="880"
           alt="Study Results"
           class="rounded-lg w-[100%] mb-2 md:w-[100%]"
         />
@@ -376,7 +364,7 @@
       <div>
         <h2 class="text-xl font-bold mb-4 text-gray-800">Findings</h2>
         <img
-          src="images/5-a.png"
+          src="images/5-a.png" width="1600" height="915"
           alt="Findings 5-a"
           class="rounded-lg w-[100%] mb-2 md:w-[100%]"
         />
@@ -394,7 +382,7 @@
         </div>
 
         <img
-          src="images/5-bc.png"
+          src="images/5-bc.png" width="3764" height="1100"
           alt="Findings 5-bc"
           class="rounded-lg w-[100%] mb-2 md:w-[100%]"
         />
@@ -413,7 +401,7 @@
         </div>
 
         <img
-          src="images/5-def.png"
+          src="images/5-def.png" width="3431" height="1002"
           alt="Findings 5-f"
           class="rounded-lg w-[100%] mb-2 md:w-[100%]"
         />
@@ -432,7 +420,7 @@
         </div>
 
         <img
-          src="images/5-gh.png"
+          src="images/5-gh.png" width="2266" height="1000"
           alt="Findings 5-gh"
           class="rounded-lg w-[100%] mb-2 md:w-[100%]"
         />
@@ -458,12 +446,11 @@
       </div>
     </div>
 
-    <div class="scroll-spacer h-[850vh]"></div>
+    <div id="outroTransition" class="scene-transition" aria-hidden="true"></div>
 
     <section
       id="stage5Content"
       class="relative z-[4] mx-auto w-[92%] max-w-4xl rounded-2xl bg-white/85 px-6 py-2 text-left md:w-[70%]"
-      style="opacity: 0"
     >
       <h3 class="mt-0 text-xl font-bold text-gray-600 md:text-3xl">
         Acknowledgments
@@ -494,34 +481,17 @@
       </p>
     </section>
 
+    </main>
+
     <div class="h-[2vh] md:h-[5vh]"></div>
 
-    <canvas id="webgl" class="fixed top-0 left-0 z-[1]"></canvas>
+    <canvas id="webgl" class="fixed top-0 left-0 z-[1]" aria-hidden="true"></canvas>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="main.js"></script>
-    <script>
-      // Disable pinch-zoom / multi-touch zoom
-      (function () {
-        // iOS Safari: prevent gesturestart zoom
-        document.addEventListener("gesturestart", function (e) {
-          e.preventDefault();
-        });
 
-        // Other mobile browsers: block touchmove when >1 touch point
-        document.addEventListener(
-          "touchmove",
-          function (e) {
-            if (e.touches && e.touches.length > 1) {
-              e.preventDefault();
-            }
-          },
-          { passive: false },
-        );
-      })();
-    </script>
   </body>
 </html>

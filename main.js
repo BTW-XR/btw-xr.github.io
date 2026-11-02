@@ -21,19 +21,12 @@ const CONFIG = {
     AMBIENT_INTENSITY: 0.3,
   },
   MOBILE_BREAKPOINT: 768,
-  RESET_SCROLL_TO_TOP: false,
   EDGE_THRESHOLD_ANGLE: 10,
   OPACITY: {
     VISIBLE: 1,
     HIDDEN: 0,
     THRESHOLD_LOW: 0.01,
     THRESHOLD_HIGH: 0.99,
-  },
-  SCROLL_LOCK: {
-    MIN_LOCK_MS: 120,
-    QUIET_WINDOW_MS: 120,
-    MAX_LOCK_MS: 1400,
-    FULL_OPACITY_THRESHOLD: 0.999,
   },
 };
 
@@ -48,7 +41,7 @@ const ANIMATION_CONFIG = {
       scale: { x: 15.0, y: 7.0 },
       moveDown: 0.4,
     },
-    stage3: { pauseA: 2.0, moveLeft: 0.5, pauseB: 2.0, moveRight: 0.5, pauseC: 2.0 },
+    stage3: { moveLeft: 0.5, moveRight: 0.5 },
     stage4: {
       rotateToCenter: 0.9,
       moveBackZ: 2.5,
@@ -64,7 +57,6 @@ const ANIMATION_CONFIG = {
       pauseAfterStage4: 0.1,
       duration: 0.5,
       threeDim: 0.92,
-      contentFade: 0.8,
     },
   },
   MOBILE: {
@@ -77,7 +69,7 @@ const ANIMATION_CONFIG = {
       scale: { x: 4.5, y: 5.5 },
       moveDown: 0.5,
     },
-    stage3: { pauseA: 1.0, moveLeft: 0.5, pauseB: 1.0, moveRight: 0.5, pauseC: 0.3 },
+    stage3: { moveLeft: 0.5, moveRight: 0.5 },
     stage4: {
       rotateToCenter: 0.9,
       moveBackZ: 5.5,
@@ -93,7 +85,6 @@ const ANIMATION_CONFIG = {
       pauseAfterStage4: 0.35,
       duration: 1.0,
       threeDim: 0.9,
-      contentFade: 0.8,
     },
   },
 };
@@ -102,6 +93,7 @@ const ANIMATION_CONFIG = {
 // SCENE SETUP
 // ============================================================================
 
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(CONFIG.COLORS.BACKGROUND);
 
@@ -117,37 +109,12 @@ const renderer = new THREE.WebGLRenderer({
   antialias: true,
 });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.domElement.style.filter = 'brightness(1)';
-
-/**
- * Returns viewport dimensions that track mobile browser UI chrome changes.
- * visualViewport reflects the currently visible area when the URL bar collapses.
- * @returns {{width: number, height: number}}
- */
-function getViewportSize() {
-  if (window.visualViewport) {
-    return {
-      width: window.visualViewport.width,
-      height: window.visualViewport.height,
-    };
-  }
-
-  return {
-    width: window.innerWidth,
-    height: window.innerHeight,
-  };
-}
-
-/**
- * Updates CSS viewport unit fallback used by panel max-heights.
- */
-function updateDynamicViewportHeight() {
-  const { height } = getViewportSize();
-  document.documentElement.style.setProperty('--app-vh', `${height / 100}px`);
-}
-
-updateDynamicViewportHeight();
+// Reserve transition space before the model loads, avoiding a late layout shift.
+document.documentElement.classList.toggle(
+  'scene-ready', Boolean(window.gsap && window.ScrollTrigger && !reducedMotion.matches)
+);
 
 // ============================================================================
 // CAMERA CONTROL STATE
@@ -183,252 +150,79 @@ const _rightWorldPos = new THREE.Vector3();
 // SCROLL MANAGEMENT
 // ============================================================================
 
-/**
- * Resets scroll position to top and refreshes ScrollTrigger
- */
-function resetScrollToTop() {
-  if (!CONFIG.RESET_SCROLL_TO_TOP) return;
+const progressBar = document.querySelector('#pageProgressBar');
 
-  window.scrollTo(0, 0);
-  if (window.ScrollTrigger) {
-    ScrollTrigger.refresh();
-  }
-}
-
-/**
- * Initialize scroll restoration behavior
- * Ensures page always starts from top after refresh or navigation
- */
-function initScrollRestoration() {
-  if ('scrollRestoration' in history) {
-    history.scrollRestoration = 'manual';
-  }
-
-  // Only initialize scroll reset behavior when enabled in CONFIG
-  if (!CONFIG.RESET_SCROLL_TO_TOP) return;
-
-  resetScrollToTop();
-  window.addEventListener('DOMContentLoaded', resetScrollToTop);
-  window.addEventListener('load', () => {
-    resetScrollToTop();
-    requestAnimationFrame(resetScrollToTop);
-  });
-  window.addEventListener('pageshow', () => {
-    resetScrollToTop();
-    requestAnimationFrame(resetScrollToTop);
-  });
-}
-
-initScrollRestoration();
-
-/**
- * Updates the fixed top progress bar based on current document scroll.
- */
 function updateScrollProgressBar() {
-  const progressBar = document.querySelector('#pageProgressBar');
-  if (!progressBar) return;
-
   const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
   const progress = scrollableHeight > 0 ? window.scrollY / scrollableHeight : 0;
-  const clampedProgress = Math.min(Math.max(progress, 0), 1);
-
-  progressBar.style.width = `${(clampedProgress * 100).toFixed(2)}%`;
+  progressBar.style.transform = `scaleX(${Math.min(Math.max(progress, 0), 1)})`;
 }
 
+// Leave scroll restoration, momentum, touch gestures and keyboard navigation native.
 window.addEventListener('scroll', updateScrollProgressBar, { passive: true });
 window.addEventListener('load', updateScrollProgressBar);
-window.addEventListener('DOMContentLoaded', updateScrollProgressBar);
-
-const PANEL_SCROLL_IDS = new Set(['middlePanelContent', 'leftPanelContent', 'rightPanelContent']);
-
-const scrollLockState = {
-  startedAt: 0,
-  quietUntil: 0,
-  styleApplied: false,
-  anchorY: window.scrollY,
-  rafId: null,
-  htmlOverflow: '',
-  bodyOverflow: '',
-  bodyTouchAction: '',
-};
+window.addEventListener('pageshow', updateScrollProgressBar);
 
 /**
- * Whether the temporary settle lock is currently active.
- * @returns {boolean}
+ * Map the gaps between real content sections onto the background animation.
+ * The timeline holds still throughout each section, regardless of its height.
+ * Scrolling backward retraces the same path without resetting content.
  */
-function isScrollLockActive() {
-  const now = performance.now();
-  const withinMax = now - scrollLockState.startedAt < CONFIG.SCROLL_LOCK.MAX_LOCK_MS;
-  return scrollLockState.startedAt > 0 && now < scrollLockState.quietUntil && withinMax;
-}
+function bindSceneToDocument(timeline, transitions) {
+  let ranges = [];
+  let refreshFrame = null;
 
-/**
- * Temporarily applies hard scroll suppression styles while draining momentum.
- */
-function applyScrollLockStyles() {
-  if (scrollLockState.styleApplied) return;
-
-  const html = document.documentElement;
-  const body = document.body;
-
-  if (!html || !body) return;
-
-  scrollLockState.htmlOverflow = html.style.overflow;
-  scrollLockState.bodyOverflow = body.style.overflow;
-  scrollLockState.bodyTouchAction = body.style.touchAction;
-
-  html.style.overflow = 'hidden';
-  body.style.overflow = 'hidden';
-  body.style.touchAction = 'none';
-  scrollLockState.styleApplied = true;
-}
-
-/**
- * Restores styles applied by applyScrollLockStyles.
- */
-function restoreScrollLockStyles() {
-  if (!scrollLockState.styleApplied) return;
-
-  const html = document.documentElement;
-  const body = document.body;
-
-  if (html) html.style.overflow = scrollLockState.htmlOverflow;
-  if (body) {
-    body.style.overflow = scrollLockState.bodyOverflow;
-    body.style.touchAction = scrollLockState.bodyTouchAction;
-  }
-
-  scrollLockState.styleApplied = false;
-}
-
-/**
- * Forces page scroll back to anchor and extends quiet window.
- */
-function absorbScrollMomentum() {
-  if (window.scrollY !== scrollLockState.anchorY) {
-    window.scrollTo(0, scrollLockState.anchorY);
-    scrollLockState.quietUntil = performance.now() + CONFIG.SCROLL_LOCK.QUIET_WINDOW_MS;
-  }
-}
-
-/**
- * Starts/extends an adaptive lock that drains inertial page progression.
- * @param {number} durationMs
- */
-function activateScrollSettleLock(durationMs = CONFIG.SCROLL_LOCK.MIN_LOCK_MS) {
-  const now = performance.now();
-  scrollLockState.anchorY = window.scrollY;
-
-  if (!isScrollLockActive()) {
-    scrollLockState.startedAt = now;
-  }
-
-  scrollLockState.quietUntil = Math.max(scrollLockState.quietUntil, now + durationMs);
-  applyScrollLockStyles();
-
-  if (scrollLockState.rafId !== null) return;
-
-  const tick = () => {
-    if (!isScrollLockActive()) {
-      scrollLockState.rafId = null;
-      scrollLockState.startedAt = 0;
-      scrollLockState.quietUntil = 0;
-      restoreScrollLockStyles();
-      return;
+  function updateScene() {
+    let time = 0;
+    for (const range of ranges) {
+      if (window.scrollY < range.start) break;
+      const progress = Math.min(1, (window.scrollY - range.start) / (range.end - range.start));
+      time = range.from + (range.to - range.from) * progress;
+      if (progress < 1) break;
     }
+    timeline.time(time);
+    updateScrollProgressBar();
+  }
 
-    absorbScrollMomentum();
+  function measure() {
+    let previousTime = 0;
+    ranges = transitions.map(({ id, time }) => {
+      const element = document.getElementById(id);
+      const top = element.getBoundingClientRect().top + window.scrollY;
+      const start = top - window.innerHeight * 0.25;
+      const end = Math.max(start + 1, top + element.offsetHeight - window.innerHeight * 0.75);
+      const range = { start, end, from: previousTime, to: time };
+      previousTime = time;
+      return range;
+    });
+    updateScene();
+  }
 
-    scrollLockState.rafId = requestAnimationFrame(tick);
-  };
-
-  scrollLockState.rafId = requestAnimationFrame(tick);
-}
-
-/**
- * Blocks input-driven page scrolling while the settle lock is active.
- */
-function initScrollSettleLockHandlers() {
-  window.addEventListener('scroll', () => {
-    if (!isScrollLockActive()) return;
-    absorbScrollMomentum();
-  }, { passive: true, capture: true });
-
-  window.addEventListener(
-    'wheel',
-    (event) => {
-      if (!isScrollLockActive()) return;
-      event.preventDefault();
-      scrollLockState.quietUntil = performance.now() + CONFIG.SCROLL_LOCK.QUIET_WINDOW_MS;
-    },
-    { passive: false, capture: true }
-  );
-
-  window.addEventListener(
-    'touchmove',
-    (event) => {
-      if (!isScrollLockActive()) return;
-      event.preventDefault();
-      scrollLockState.quietUntil = performance.now() + CONFIG.SCROLL_LOCK.QUIET_WINDOW_MS;
-    },
-    { passive: false, capture: true }
-  );
-
-  window.addEventListener(
-    'keydown',
-    (event) => {
-      if (!isScrollLockActive()) return;
-
-      const blockedKeys = new Set([
-        'ArrowDown',
-        'ArrowUp',
-        'PageDown',
-        'PageUp',
-        'Home',
-        'End',
-        ' ',
-      ]);
-
-      if (!blockedKeys.has(event.key)) return;
-      event.preventDefault();
-      scrollLockState.quietUntil = performance.now() + CONFIG.SCROLL_LOCK.QUIET_WINDOW_MS;
-    },
-    { capture: true }
-  );
-}
-
-initScrollSettleLockHandlers();
-
-/**
- * Enables/disables links in the info block based on opacity.
- * Links are non-interactive and removed from tab order when fully hidden.
- * @param {number} opacity - Current opacity value for the info block
- */
-function updateInfoLinksInteractivity(opacity) {
-  const infoBlock = document.querySelector('#infoBlock');
-  const mobileInfoFooter = document.querySelector('#mobileInfoFooter');
-
-  if (!infoBlock && !mobileInfoFooter) return;
-
-  const isHidden = opacity <= CONFIG.OPACITY.THRESHOLD_LOW;
-  [infoBlock, mobileInfoFooter].forEach((container) => {
-    if (!container) return;
-    container.style.pointerEvents = isHidden ? 'none' : 'auto';
+  ScrollTrigger.create({
+    start: 0,
+    end: 'max',
+    onUpdate: updateScene,
+    onRefresh: measure,
   });
 
-  [infoBlock, mobileInfoFooter].forEach((container) => {
-    if (!container) return;
-
-    container.querySelectorAll('a').forEach((link) => {
-      if (isHidden) {
-        link.setAttribute('tabindex', '-1');
-        link.setAttribute('aria-disabled', 'true');
-      } else {
-        link.removeAttribute('tabindex');
-        link.removeAttribute('aria-disabled');
-      }
+  // Media dimensions, text wrapping and orientation can change section lengths.
+  // Observe content, not scroll input; never change the user's scroll position.
+  const observer = new ResizeObserver(() => {
+    if (refreshFrame !== null) cancelAnimationFrame(refreshFrame);
+    refreshFrame = requestAnimationFrame(() => {
+      refreshFrame = null;
+      ScrollTrigger.refresh();
     });
   });
+  document.querySelectorAll('.intro-content, .story-section, #stage5Content').forEach((section) => {
+    observer.observe(section);
+  });
+  measure();
+
+  return () => {
+    observer.disconnect();
+    if (refreshFrame !== null) cancelAnimationFrame(refreshFrame);
+  };
 }
 
 // ============================================================================
@@ -456,7 +250,7 @@ scene.add(directionalLight, ambientLight);
  * Sets camera position based on viewport size
  */
 function setCameraPosition() {
-  const isMobile = window.innerWidth <= CONFIG.MOBILE_BREAKPOINT;
+  const isMobile = window.innerWidth < CONFIG.MOBILE_BREAKPOINT;
   camera.position.z = isMobile ? CONFIG.CAMERA.Z_MOBILE : CONFIG.CAMERA.Z_DESKTOP;
   camera.position.y = CONFIG.CAMERA.Y_POSITION;
 }
@@ -543,20 +337,39 @@ function processLoadedModel(gltf) {
     setLookTargetFromObject(cameraLookTarget, sceneObjects.panelCenter);
   }
 
-  initScrollAnimations(sceneObjects);
+  gsap.registerPlugin(ScrollTrigger);
+  const media = gsap.matchMedia();
+  media.add({
+    desktop: '(min-width: 768px)',
+    mobile: '(max-width: 767px)',
+    reduceMotion: '(prefers-reduced-motion: reduce)',
+  }, (context) => {
+    const animateScene = !context.conditions.reduceMotion;
+    document.documentElement.classList.toggle('scene-ready', animateScene);
+    if (!animateScene) return;
+
+    setCameraPosition();
+    gsap.set(cameraLookControl, { lockCenter: 1, leftBlend: 0, rightBlend: 0 });
+    [sceneObjects.panelLeft, sceneObjects.panelCenter, sceneObjects.panelRight, sceneObjects.panelWhole]
+      .forEach((panel) => setObjectOpacity(panel, CONFIG.OPACITY.HIDDEN, true));
+    const cleanup = initScrollAnimations(sceneObjects);
+    return () => {
+      cleanup();
+      document.documentElement.classList.remove('scene-ready');
+    };
+  });
 }
 
 const loader = new THREE.GLTFLoader();
-loader.load('models/scene.glb', processLoadedModel);
+loader.load('models/scene.glb', processLoadedModel, undefined, () => {
+  document.documentElement.classList.remove('scene-ready');
+  renderer.domElement.hidden = true;
+  updateScrollProgressBar();
+});
 
 // ============================================================================
 // SCROLL ANIMATIONS
 // ============================================================================
-
-const CONTENT_FADE = {
-  OUT: 0.3,
-  IN: 0.4,
-};
 
 /**
  * Adds an opacity tween for a 3D object while keeping material updates centralized.
@@ -581,85 +394,13 @@ function opacityTweenObj(timeline, object3D, opacity, duration, at) {
 }
 
 /**
- * Adds a DOM opacity tween and keeps pointer events in sync.
- * @param {gsap.core.Timeline} timeline - GSAP timeline
- * @param {HTMLElement | null} element - Element to fade
- * @param {number} opacity - Target opacity
- * @param {number} duration - Tween duration
- * @param {number|string} at - Timeline position
- */
-function opacityTweenDOM(timeline, element, opacity, duration, at) {
-  if (!element) return;
-
-  const isPanelContent = element.id ? PANEL_SCROLL_IDS.has(element.id) : false;
-  const isFadeOutToHidden = opacity <= CONFIG.OPACITY.THRESHOLD_LOW;
-  let wasFullyVisible = false;
-  let wasHidden = false;
-
-  timeline.to(
-    element,
-    {
-      opacity,
-      duration,
-      onUpdate: () => {
-        const currentOpacity = Number(gsap.getProperty(element, 'opacity'));
-        element.style.pointerEvents = currentOpacity > 0.5 ? 'auto' : 'none';
-
-        const isHidden = currentOpacity <= CONFIG.OPACITY.THRESHOLD_LOW;
-        if (isPanelContent && isFadeOutToHidden && isHidden && !wasHidden) {
-          element.scrollTop = 0;
-        }
-        wasHidden = isHidden;
-
-        if (!isPanelContent || opacity < CONFIG.OPACITY.VISIBLE) return;
-
-        const isFullyVisible = currentOpacity >= CONFIG.SCROLL_LOCK.FULL_OPACITY_THRESHOLD;
-        if (isFullyVisible && !wasFullyVisible) {
-          activateScrollSettleLock();
-        }
-        wasFullyVisible = isFullyVisible;
-      },
-    },
-    at
-  );
-}
-
-/**
- * Schedules a stage-3 panel transition: fade out content, rotate camera, fade in new content.
- * Returns the time position where this transition ends.
- * @param {Object} params - Transition parameters
- * @returns {number}
- */
-function schedulePanelTransition(params) {
-  const {
-    timeline,
-    startAt,
-    fromContent,
-    toContent,
-    cameraLookControl,
-    blendProp,
-    rotateDuration,
-  } = params;
-
-  const rotateStart = startAt + CONTENT_FADE.OUT;
-  const fadeInStart = rotateStart + rotateDuration;
-  const endAt = fadeInStart + CONTENT_FADE.IN;
-
-  opacityTweenDOM(timeline, fromContent, 0, CONTENT_FADE.OUT, startAt);
-  timeline.to(cameraLookControl, { [blendProp]: 1, duration: rotateDuration, ease: 'none' }, rotateStart);
-  opacityTweenDOM(timeline, toContent, 1, CONTENT_FADE.IN, fadeInStart);
-
-  return endAt;
-}
-
-/**
  * Initializes scroll-based animations for the 3D scene
  * @param {Object} sceneObjects - Object containing references to scene objects
  */
 function initScrollAnimations(sceneObjects) {
   gsap.registerPlugin(ScrollTrigger);
 
-  const isMobile = window.innerWidth <= CONFIG.MOBILE_BREAKPOINT;
+  const isMobile = window.innerWidth < CONFIG.MOBILE_BREAKPOINT;
   const config = isMobile ? ANIMATION_CONFIG.MOBILE : ANIMATION_CONFIG.DESKTOP;
 
   // Calculate camera zoom positions
@@ -678,45 +419,10 @@ function initScrollAnimations(sceneObjects) {
     stage3Start: stage0Duration + stage1Duration + stage2Duration,
   };
 
-  const timeline = gsap.timeline({
-    scrollTrigger: {
-      trigger: ".scroll-spacer",
-      start: "top top",
-      end: "+=800%",
-      scrub: true, // Tighter scroll sync and fully reversible
-    },
-  });
+  const timeline = gsap.timeline({ paused: true });
 
-  // Stage 0: Whole panel appears before the existing stage flow.
+  // Intro: reveal the whole window, then decompose it into spatial panels.
   opacityTweenObj(timeline, sceneObjects.panelWhole, 1, stage0Duration, timings.stage0Start);
-
-  // Stage 1: Title/info fade while split panels fade in
-  const title = document.querySelector('#title');
-  const scrollHint = document.querySelector('#scrollHint');
-  const infoBlock = document.querySelector('#infoBlock');
-  const mobileInfoFooter = document.querySelector('#mobileInfoFooter');
-
-  const overlayOpacity = { value: CONFIG.OPACITY.VISIBLE };
-  const introElements = [title, scrollHint, infoBlock, mobileInfoFooter];
-
-  updateInfoLinksInteractivity(overlayOpacity.value);
-
-  timeline.to(
-    overlayOpacity,
-    {
-      value: CONFIG.OPACITY.HIDDEN,
-      duration: stage1Duration,
-      onUpdate: () => {
-        introElements.forEach((element) => {
-          if (!element) return;
-          element.style.opacity = String(overlayOpacity.value);
-        });
-
-        updateInfoLinksInteractivity(overlayOpacity.value);
-      },
-    },
-    timings.stage1Start
-  );
 
   opacityTweenObj(timeline, sceneObjects.panelLeft, 1, stage1Duration, timings.stage1Start);
   opacityTweenObj(timeline, sceneObjects.panelCenter, 1, stage1Duration, timings.stage1Start);
@@ -782,56 +488,18 @@ function initScrollAnimations(sceneObjects) {
   timeline.to(cameraLookControl, { lockCenter: 0, duration: 0.001 }, timings.stage3Start);
   timeline.set(cameraLookControl, { leftBlend: 0, rightBlend: 0 }, timings.stage3Start);
 
-  // Stage 3: Show panel contents
-  const leftPanelContent = document.querySelector('#leftPanelContent');
-  const middlePanelContent = document.querySelector('#middlePanelContent');
-  const rightPanelContent = document.querySelector('#rightPanelContent');
-  const stage5Content = document.querySelector('#stage5Content');
+  // Content is in normal flow. Only rotate during the gaps between sections.
+  const leftTransitionEnd = timings.stage3Start + config.stage3.moveLeft;
+  timeline.to(cameraLookControl, {
+    leftBlend: 1, duration: config.stage3.moveLeft, ease: 'none',
+  }, timings.stage3Start);
 
-  // Keep content interaction disabled until content is visibly shown.
-  [leftPanelContent, middlePanelContent, rightPanelContent].forEach((content) => {
-    if (content) {
-      content.style.pointerEvents = 'none';
-    }
-  });
+  const rightTransitionEnd = leftTransitionEnd + config.stage3.moveRight;
+  timeline.to(cameraLookControl, {
+    rightBlend: 1, duration: config.stage3.moveRight, ease: 'none',
+  }, leftTransitionEnd);
 
-  // Fade in middle panel content at stage 3 start
-  opacityTweenDOM(timeline, middlePanelContent, 1, CONTENT_FADE.OUT, timings.stage3Start);
-
-  let cursor = timings.stage3Start + config.stage3.pauseA;
-
-  if (sceneObjects.panelLeft) {
-    cursor = schedulePanelTransition({
-      timeline,
-      startAt: cursor,
-      fromContent: middlePanelContent,
-      toContent: leftPanelContent,
-      cameraLookControl,
-      blendProp: 'leftBlend',
-      rotateDuration: config.stage3.moveLeft,
-    });
-  }
-
-  cursor += config.stage3.pauseB;
-
-  if (sceneObjects.panelRight) {
-    cursor = schedulePanelTransition({
-      timeline,
-      startAt: cursor,
-      fromContent: leftPanelContent,
-      toContent: rightPanelContent,
-      cameraLookControl,
-      blendProp: 'rightBlend',
-      rotateDuration: config.stage3.moveRight,
-    });
-  }
-
-  // Stage 4: Pause, then rotate view back to center and move camera backward/up
-  cursor += config.stage3.pauseC;
-  const stage4Start = cursor + CONTENT_FADE.OUT;
-
-  // Match stage-3 transition behavior: hide current panel content before rotating away
-  opacityTweenDOM(timeline, rightPanelContent, 0, CONTENT_FADE.OUT, cursor);
+  const stage4Start = rightTransitionEnd;
 
   timeline.to(
     cameraLookControl,
@@ -918,13 +586,12 @@ function initScrollAnimations(sceneObjects) {
     stage5Start
   );
 
-  opacityTweenDOM(
-    timeline,
-    stage5Content,
-    1,
-    config.stage5.contentFade,
-    stage5Start
-  );
+  return bindSceneToDocument(timeline, [
+    { id: 'introTransition', time: timings.stage3Start },
+    { id: 'leftTransition', time: leftTransitionEnd },
+    { id: 'rightTransition', time: rightTransitionEnd },
+    { id: 'outroTransition', time: timeline.duration() },
+  ]);
 }
 
 // ============================================================================
@@ -983,6 +650,7 @@ function setObjectOpacity(object3D, opacity, suppressLog = false) {
  */
 function animate() {
   requestAnimationFrame(animate);
+  if (document.hidden || reducedMotion.matches) return;
   updatePanelsFacingCamera();
   updateCameraLookTarget();
 
@@ -1074,29 +742,16 @@ function updatePanelsFacingCamera() {
 // EVENT HANDLERS
 // ============================================================================
 
-/**
- * Handle window resize event
- */
+// Resize the projection without resetting the animated camera position.
+// Use the layout viewport: pinch zoom must not change the scene or reading position.
+let resizeFrame = null;
 window.addEventListener('resize', () => {
-  updateDynamicViewportHeight();
-  updateScrollProgressBar();
-
-  const viewport = getViewportSize();
-  setCameraPosition();
-  camera.aspect = viewport.width / viewport.height;
-  camera.updateProjectionMatrix();
-  renderer.setSize(viewport.width, viewport.height);
-});
-
-if (window.visualViewport) {
-  // Mobile Chrome triggers these as the address bar shows/hides.
-  window.visualViewport.addEventListener('resize', () => {
-    updateDynamicViewportHeight();
-    updateScrollProgressBar();
-
-    const viewport = getViewportSize();
-    camera.aspect = viewport.width / viewport.height;
+  if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
+  resizeFrame = requestAnimationFrame(() => {
+    resizeFrame = null;
+    camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(viewport.width, viewport.height);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    updateScrollProgressBar();
   });
-}
+});
