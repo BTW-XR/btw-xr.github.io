@@ -1,6 +1,7 @@
 /* A single native scroll surface for mouse, trackpad, touch and keyboard. */
 html {
   scrollbar-gutter: stable;
+  background: white;
 }
 
 body {
@@ -9,6 +10,12 @@ body {
 }
 
 #webgl {
+  display: block;
+  width: 100%;
+  /* Safari's collapsing toolbar must not resize the drawing buffer mid-scroll. */
+  height: 100vh;
+  height: 100lvh;
+  background: white;
   pointer-events: none;
 }
 
@@ -117,6 +124,17 @@ body {
 
   .story-section .text-sm {
     font-size: 1rem;
+  }
+
+  /* The reading frame follows the entire article, including long sections.
+     Its sides sit outside the text, independently of 3D camera perspective. */
+  .scene-ready .story-section::before {
+    content: '';
+    position: absolute;
+    inset: 20px -12px;
+    border: 1px solid #555;
+    opacity: var(--reading-frame-opacity, 0);
+    pointer-events: none;
   }
 
   .scene-ready .scene-transition {

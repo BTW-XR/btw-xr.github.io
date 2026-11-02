@@ -107,10 +107,39 @@ const camera = new THREE.PerspectiveCamera(
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector('#webgl'),
   antialias: true,
+  alpha: true,
+  // Retain the last frame when a touch browser composites inertial scrolling.
+  preserveDrawingBuffer: window.matchMedia('(any-pointer: coarse)').matches,
 });
-renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.domElement.style.filter = 'brightness(1)';
+renderer.setClearColor(CONFIG.COLORS.BACKGROUND, 1);
+let renderedWidth = 0;
+let renderedHeight = 0;
+let contextLost = false;
+
+function resizeRendererToDisplaySize() {
+  const width = Math.max(1, renderer.domElement.clientWidth);
+  const height = Math.max(1, renderer.domElement.clientHeight);
+  if (width === renderedWidth && height === renderedHeight) return;
+
+  renderedWidth = width;
+  renderedHeight = height;
+  // CSS owns display dimensions; only allocate a buffer when they really change.
+  renderer.setSize(width, height, false);
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+}
+
+renderer.domElement.addEventListener('webglcontextlost', (event) => {
+  event.preventDefault();
+  contextLost = true;
+  renderer.domElement.style.visibility = 'hidden';
+});
+renderer.domElement.addEventListener('webglcontextrestored', () => {
+  contextLost = false;
+  // Reveal only after renderScene has drawn a complete replacement frame.
+  renderScene();
+});
 // Reserve transition space before the model loads, avoiding a late layout shift.
 document.documentElement.classList.toggle(
   'scene-ready', Boolean(window.gsap && window.ScrollTrigger && !reducedMotion.matches)
@@ -168,9 +197,34 @@ window.addEventListener('pageshow', updateScrollProgressBar);
  * The timeline holds still throughout each section, regardless of its height.
  * Scrolling backward retraces the same path without resetting content.
  */
-function bindSceneToDocument(timeline, transitions) {
+function bindSceneToDocument(timeline, transitions, sceneObjects) {
   let ranges = [];
   let refreshFrame = null;
+  const mobile = window.innerWidth < CONFIG.MOBILE_BREAKPOINT;
+  const readingFrames = mobile ? [
+    ['middlePanelContent', sceneObjects.panelCenter],
+    ['leftPanelContent', sceneObjects.panelLeft],
+    ['rightPanelContent', sceneObjects.panelRight],
+  ].map(([id, panel]) => {
+    const outlines = [];
+    panel?.traverse((child) => {
+      if (child.isLineSegments) outlines.push(child);
+    });
+    return { element: document.getElementById(id), panel, outlines, top: 0, bottom: 0 };
+  }) : [];
+
+  function updateReadingFrames() {
+    for (const frame of readingFrames) {
+      // Complete the handoff within the section's empty padding, before text enters.
+      const entering = (window.scrollY + window.innerHeight - frame.top) / 32;
+      const leaving = (frame.bottom - window.scrollY) / 32;
+      const opacity = Math.max(0, Math.min(1, entering, leaving));
+      frame.element.style.setProperty('--reading-frame-opacity', opacity);
+      for (const outline of frame.outlines) {
+        outline.material.opacity = (frame.panel.userData.opacity ?? 1) * (1 - opacity);
+      }
+    }
+  }
 
   function updateScene() {
     let time = 0;
@@ -181,20 +235,26 @@ function bindSceneToDocument(timeline, transitions) {
       if (progress < 1) break;
     }
     timeline.time(time);
+    updateReadingFrames();
     updateScrollProgressBar();
   }
 
   function measure() {
     let previousTime = 0;
+    const sceneHeight = renderer.domElement.clientHeight;
     ranges = transitions.map(({ id, time }) => {
       const element = document.getElementById(id);
       const top = element.getBoundingClientRect().top + window.scrollY;
-      const start = top - window.innerHeight * 0.25;
-      const end = Math.max(start + 1, top + element.offsetHeight - window.innerHeight * 0.75);
+      const start = top - sceneHeight * 0.25;
+      const end = Math.max(start + 1, top + element.offsetHeight - sceneHeight * 0.75);
       const range = { start, end, from: previousTime, to: time };
       previousTime = time;
       return range;
     });
+    for (const frame of readingFrames) {
+      frame.top = frame.element.getBoundingClientRect().top + window.scrollY;
+      frame.bottom = frame.top + frame.element.offsetHeight;
+    }
     updateScene();
   }
 
@@ -222,6 +282,12 @@ function bindSceneToDocument(timeline, transitions) {
   return () => {
     observer.disconnect();
     if (refreshFrame !== null) cancelAnimationFrame(refreshFrame);
+    for (const frame of readingFrames) {
+      frame.element.style.removeProperty('--reading-frame-opacity');
+      for (const outline of frame.outlines) {
+        outline.material.opacity = frame.panel.userData.opacity ?? 1;
+      }
+    }
   };
 }
 
@@ -349,6 +415,7 @@ function processLoadedModel(gltf) {
     if (!animateScene) return;
 
     setCameraPosition();
+    scene.background.setHex(CONFIG.COLORS.BACKGROUND);
     gsap.set(cameraLookControl, { lockCenter: 1, leftBlend: 0, rightBlend: 0 });
     [sceneObjects.panelLeft, sceneObjects.panelCenter, sceneObjects.panelRight, sceneObjects.panelWhole]
       .forEach((panel) => setObjectOpacity(panel, CONFIG.OPACITY.HIDDEN, true));
@@ -564,7 +631,7 @@ function initScrollAnimations(sceneObjects) {
     );
   }
 
-  // Stage 5: Dim the full 3D canvas slightly and reveal non-fixed content section
+  // Stage 5: Shade the scene background inside WebGL, without a canvas CSS filter.
   const stage4End = stage4Start + Math.max(
     config.stage4.rotateToCenter,
     config.stage4.moveBackDuration,
@@ -580,7 +647,7 @@ function initScrollAnimations(sceneObjects) {
       duration: config.stage5.duration,
       ease: 'none',
       onUpdate: () => {
-        renderer.domElement.style.filter = `brightness(${stage5Dim.value})`;
+        scene.background.setScalar(stage5Dim.value);
       },
     },
     stage5Start
@@ -591,7 +658,7 @@ function initScrollAnimations(sceneObjects) {
     { id: 'leftTransition', time: leftTransitionEnd },
     { id: 'rightTransition', time: rightTransitionEnd },
     { id: 'outroTransition', time: timeline.duration() },
-  ]);
+  ], sceneObjects);
 }
 
 // ============================================================================
@@ -633,10 +700,12 @@ function setObjectOpacity(object3D, opacity, suppressLog = false) {
 
     const materials = Array.isArray(child.material) ? child.material : [child.material];
     materials.forEach((material) => {
-      material.transparent = true;
+      if (!material.transparent) {
+        material.transparent = true;
+        material.needsUpdate = true;
+      }
       material.opacity = opacity;
       material.depthWrite = opacity >= 1;
-      material.needsUpdate = true;
     });
   });
 }
@@ -650,7 +719,13 @@ function setObjectOpacity(object3D, opacity, suppressLog = false) {
  */
 function animate() {
   requestAnimationFrame(animate);
-  if (document.hidden || reducedMotion.matches) return;
+  renderScene();
+}
+
+function renderScene() {
+  if (document.hidden || reducedMotion.matches || contextLost) return;
+  // Resizing clears a canvas. Resize and redraw in this same frame, never separately.
+  resizeRendererToDisplaySize();
   updatePanelsFacingCamera();
   updateCameraLookTarget();
 
@@ -659,6 +734,9 @@ function animate() {
   }
 
   renderer.render(scene, camera);
+  if (renderer.domElement.style.visibility === 'hidden') {
+    renderer.domElement.style.visibility = 'visible';
+  }
 }
 
 /**
@@ -742,16 +820,5 @@ function updatePanelsFacingCamera() {
 // EVENT HANDLERS
 // ============================================================================
 
-// Resize the projection without resetting the animated camera position.
-// Use the layout viewport: pinch zoom must not change the scene or reading position.
-let resizeFrame = null;
-window.addEventListener('resize', () => {
-  if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
-  resizeFrame = requestAnimationFrame(() => {
-    resizeFrame = null;
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    updateScrollProgressBar();
-  });
-});
+// The render loop handles actual canvas size changes atomically with drawing.
+window.addEventListener('resize', updateScrollProgressBar);
