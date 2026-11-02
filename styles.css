@@ -22,6 +22,10 @@ body {
 .story-section {
   position: relative;
   z-index: 3;
+  /* Section padding and gaps must not cover the fixed 3D scene. */
+  background: transparent;
+  /* Keep text legible over scene outlines without adding an opaque panel. */
+  text-shadow: 0 0 3px white, 0 0 6px white;
   box-sizing: border-box;
   min-height: 100vh;
   min-height: 100svh;
@@ -37,7 +41,6 @@ body {
   width: min(94%, 1200px);
   align-items: center;
   gap: 3rem;
-  background: white;
 }
 
 #title {
@@ -57,7 +60,6 @@ body {
 .story-section {
   width: min(60%, 900px);
   line-height: 1.65;
-  background: white;
 }
 
 .story-section > * {
